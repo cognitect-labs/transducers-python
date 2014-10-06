@@ -1,0 +1,29 @@
+## These proportions roughly hold across various n values.
+
+## Two relevant Pythonic benchmarks
+In [16]: %timeit reduce(add, (x*x for x in range(100000) if x%2), 0)
+100 loops, best of 3: 14.1 ms per loop
+
+In [17]: %timeit sum((x*x for x in range(100000) if x%2))
+100 loops, best of 3: 9.64 ms per loop
+
+## genducers.py
+In [21]: %timeit genduce(compose(mapping(lambda x: x*x), filtering(lambda x: x%2)), add, 0, range(100000))
+10 loops, best of 3: 22.5 ms per loop
+
+## transducers.py
+In [4]: %timeit transduce(compose(mapping(lambda x:x*x), filtering(lambda x: x%2)), add, 0, range(100000))
+10 loops, best of 3: 55.9 ms per loop
+
+## cyduce.pyx
+In [3]: %timeit sum_transduced()
+100 loops, best of 3: 16.9 ms per loop
+
+## Note this is NOT an API call, this is C code compiled from:
+def sum_transduced():
+    from operator import add
+
+    return transduce(compose(mapping(msq), filtering(fodd)),
+                     add,
+                     0,
+                     range(100000))
