@@ -36,3 +36,11 @@ def perf_transduced():
                      append,
                      [],
                      range(100000))
+
+def sum_transduced():
+    from operator import add
+
+    return transduce(compose(mapping(msq), filtering(fodd)),
+                     add,
+                     0,
+                     range(100000))
