@@ -27,7 +27,6 @@ def filtergen(f):
     def generator(coll):
         for item in coll:
             if f(item):
-                q
                 yield item
     return generator
 
@@ -53,6 +52,13 @@ def mapping(f):
 def filtering(f):
     return partial(filter, f)
 
+def dedupe(coll):
+    prev = coll[0]
+    yield prev
+    for item in coll[1:]:
+        if item != prev:
+            prev = item
+            yield item
 
 def mapcatting(f):
     return compose(mapping(f), cat)
@@ -96,3 +102,6 @@ def big_comp():
                              filtering(fodd),
                              taking(6)),
                      append, [], [range(10000), range(10000), range(10000)])
+
+def test_dedupe():
+    return genduce(dedupe, append, [], [1, 1, 2, 3, 4, 4, 4, 5, 1])
