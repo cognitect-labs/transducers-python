@@ -56,7 +56,9 @@ def taking(n):
             if outer_vars["counter"] < n:
                 outer_vars["counter"] += 1
                 return step(x, r)
-            return x
+#            else:
+#                Oh, right... reduced.
+#                raise "Reduction stop not yet implemented!"
         return stategate
     return xducer
 
