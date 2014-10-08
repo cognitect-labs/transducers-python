@@ -1,10 +1,6 @@
 # Build this to reduce over the final generator, compose to get generator.
 from functools import partial
 
-# canned functions
-fodd = lambda x: x%2
-msq = lambda x: x*x
-
 def compose(*fns):
     """Inverted from transducers due to generator semantics."""
     return reduce(lambda f,g: lambda x: g(f(x)), fns)
@@ -34,7 +30,9 @@ def filtergen(f):
 def taking(n):
     """Taking transducer."""
     def generator(coll):
-        for item in coll[:n]:
+        for i, item in enumerate(coll):
+            if i >= n:
+                raise StopIteration
             yield item
     return generator
 
@@ -53,9 +51,9 @@ def filtering(f):
     return partial(filter, f)
 
 def dedupe(coll):
-    prev = coll[0]
+    prev = next(coll)
     yield prev
-    for item in coll[1:]:
+    for item in coll:
         if item != prev:
             prev = item
             yield item
@@ -65,7 +63,7 @@ def mapcatting(f):
 
 
 def genduce(generator, reducer, start, coll):
-    return reduce(reducer, generator(coll), start)
+    return reduce(reducer, generator((a for a in coll)), start)
 
 ## -- for reference, naive transducer transliteration
 ## -- is a constant factor of ~5x slower.
