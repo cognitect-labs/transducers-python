@@ -34,12 +34,11 @@ msq = lambda x: x*x
 
 ## Using transducers
 def big_comp():
-    return transduce(compose(mapcatting(lambda x:
-                                          [a for a in reversed(x)]),
+    return transduce(compose(mapcatting(reversed),
                              mapping(msq),
                              filtering(fodd),
                              taking(6)),
-                     append, [], [range(20), range(50)])
+                     append, [], [range(10000), range(10000), range(10000)])
 
 
 def perf_transduced(reducer=append, init=[]):

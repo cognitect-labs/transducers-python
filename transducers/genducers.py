@@ -31,19 +31,32 @@ def filtergen(f):
                 yield item
     return generator
 
+
+def taking(n):
+    """Taking transducer."""
+    def generator(coll):
+        for item in coll[:n]:
+            yield item
+    return generator
+
+
 def cat(coll):
     for item in coll:
         for subitem in item:
             yield subitem
 
+
 def mapping(f):
     return partial(map, f)
+
 
 def filtering(f):
     return partial(filter, f)
 
+
 def mapcatting(f):
     return compose(mapping(f), cat)
+
 
 def genduce(generator, reducer, start, coll):
     return reduce(reducer, generator(coll), start)
@@ -69,3 +82,17 @@ def perf_custom_genduced(reducer=append, init=[]):
 def test_mapcatting():
     return genduce(mapcatting(reversed), append, [],
                    [range(10), range(10), range(10)])
+
+
+# -- check equivalence --
+# functions
+fodd = lambda x: x%2
+msq = lambda x: x*x
+
+## Using genducers -- twice as fast as naive transducers
+def big_comp():
+    return genduce(compose(mapcatting(reversed),
+                             mapping(msq),
+                             filtering(fodd),
+                             taking(6)),
+                     append, [], [range(10000), range(10000), range(10000)])
