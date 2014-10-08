@@ -6,7 +6,8 @@ fodd = lambda x: x%2
 msq = lambda x: x*x
 
 def compose(*fns):
-    return reduce(lambda f,g: lambda x: f(g(x)), fns)
+    """Inverted from transducers due to generator semantics."""
+    return reduce(lambda f,g: lambda x: g(f(x)), fns)
 
 def append(l, item):
     l.append(item)
@@ -30,11 +31,19 @@ def filtergen(f):
                 yield item
     return generator
 
+def cat(coll):
+    for item in coll:
+        for subitem in item:
+            yield subitem
+
 def mapping(f):
     return partial(map, f)
 
 def filtering(f):
     return partial(filter, f)
+
+def mapcatting(f):
+    return compose(mapping(f), cat)
 
 def genduce(generator, reducer, start, coll):
     return reduce(reducer, generator(coll), start)
@@ -56,3 +65,7 @@ def perf_custom_genduced(reducer=append, init=[]):
             reducer,
             init,
             range(100000))
+
+def test_mapcatting():
+    return genduce(mapcatting(reversed), append, [],
+                   [range(10), range(10), range(10)])
