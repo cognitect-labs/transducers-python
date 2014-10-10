@@ -188,4 +188,4 @@ if __name__=="__main__":
     Gbig_comp()
     perf_genduced()
     test_mapcatting()
-    Gpartition_all_mapping()
+    print(Gpartition_all_mapping())

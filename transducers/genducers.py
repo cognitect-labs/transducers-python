@@ -13,7 +13,7 @@ with a left-to-right processing chain in the first argument to genduce.
     Tests to determine input and output type/context capabilities.
 """
 # Build this to reduce over the final generator, compose to get generator.
-from functools import partial
+from functools import partial, reduce
 from random import random
 
 def compose(*fns):

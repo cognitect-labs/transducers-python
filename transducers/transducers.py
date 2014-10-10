@@ -1,25 +1,13 @@
 from functools import reduce #<-- only for py3 compat
-
 """
-Transducers test implementation in Python. It works, but concern is that it's
-about 4x slower than most cases (changed n, but not complexity of process).
-Assumption is that you'd see gains with non-trivial collection/building, etc.
-however as transducers apply transform in reduce process instead of to finished
-collection, as builtin Python routines do (except in non-trivial applications
-of comprehensions/generators, splat tricks, etc.)
-
-Some perf tests are provided. A full set of transducers as per spec is not
-yet included.
-
-** Generalization power advantage still holds for transducers, all performance
-concerns aside.
+These are reference implementations of transducers for testing correctness
+only.
 """
 def compose(*fns):
     """Compose functions using reduce on splat.
 
     compose(f, g) reads 'f composed with g', or f(g(x))
     """
-
     return reduce(lambda f,g: lambda x: f(g(x)), fns)
 
 def transduce(transducer, reducer, start, coll):
@@ -56,9 +44,8 @@ def taking(n):
             if outer_vars["counter"] < n:
                 outer_vars["counter"] += 1
                 return step(x, r)
-#            else:
-#                Oh, right... reduced.
-#                raise "Reduction stop not yet implemented!"
+            else:
+                raise StopIteration
         return stategate
     return xducer
 
