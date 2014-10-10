@@ -13,9 +13,10 @@ Performance benchmarks not hooked to  anything yet (I've been using
 ## Routines to test simple case here:
 ##====================================
 # temporary wildcard import 
-from transducers.transducers import *
+from transducers.genducers import *
+from transducers.genducers import genduce as transduce
 from transducers import genducers as G
-from transducers import cgenducers as CG
+from transducers import genducers as CG
 from collections import deque
 from functools import partial
 from fractions import Fraction
