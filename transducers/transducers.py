@@ -45,10 +45,7 @@ def taking(n):
                 outer_vars["counter"] += 1
                 return step(x, r)
             else:
+                # not verified
                 raise StopIteration
         return stategate
     return xducer
-
-def taking_while(pred):
-    """TODO"""
-    pass
