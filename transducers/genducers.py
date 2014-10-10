@@ -1,3 +1,17 @@
+"""
+Genducers in Python are pseudo-transducers that have identical semantics in
+call to genduce (analogous to call to transduce). I.e., they can be composed
+with a left-to-right processing chain in the first argument to genduce.
+
+:TODO:
+    Need to investigate speedup options from itertools, etc. These are mostly
+    naive imperative implementations of generators, builtins from itertools
+    when available (e.g. dropwhile, takewhile) are probably faster.
+ 
+    Tests to determine equivalence with transducers (in tests/)
+
+    Tests to determine input and output type/context capabilities.
+"""
 # Build this to reduce over the final generator, compose to get generator.
 from functools import partial
 
@@ -109,6 +123,30 @@ def dedupe(coll):
         if item != prev:
             prev = item
             yield item
+
+def partition_by(pred):
+    def generator(coll):
+        last = False
+        temp = []
+        for item in coll:
+            if pred(item) == last:
+                temp.append(item)
+            else:
+                yield (a for a in temp)
+                temp = [item]
+                last = pred(item)
+    return generator
+
+def partition_all(n):
+    def generator(coll):
+        temp = []
+        for i, item in enumerate(coll, 1):
+            temp.append(item)
+            if not i % n:
+                yield (a for a in temp)
+                temp = []
+        yield (a for a in temp)
+    return generator
 
 
 def mapcatting(f):

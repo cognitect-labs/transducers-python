@@ -169,6 +169,9 @@ def Gtothefront():
     return G.genduce(G.compose(G.taking(5), G.mapping(msq)),
                      dleft_append, deque(), range(10000))
 
+def Gpartition_all_mapping():
+    return G.genduce(G.compose(G.partition_all(4), G.mapping(list)), append, [], range(10))
+
 if __name__=="__main__":
     """For now, just verify no errors on running."""
     perf_transduced()
@@ -184,4 +187,4 @@ if __name__=="__main__":
     Gbig_comp()
     perf_genduced()
     test_mapcatting()
-
+    Gpartition_all_mapping()
