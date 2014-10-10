@@ -14,6 +14,7 @@ with a left-to-right processing chain in the first argument to genduce.
 """
 # Build this to reduce over the final generator, compose to get generator.
 from functools import partial
+from random import random
 
 def compose(*fns):
     """Inverted from transducers due to generator semantics."""
@@ -145,9 +146,16 @@ def partition_all(n):
             if not i % n:
                 yield (a for a in temp)
                 temp = []
-        yield (a for a in temp)
+        if temp:
+            yield (a for a in temp)
     return generator
 
+def random_sample(prob):
+    def generator(coll):
+        for item in coll:
+            if random() < prob:
+                yield item
+    return generator
 
 def mapcatting(f):
     return compose(mapping(f), cat)
