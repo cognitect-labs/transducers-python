@@ -4,3 +4,5 @@
 *.so
 apidoc/_build
 dist/
+build/
+*egg*
