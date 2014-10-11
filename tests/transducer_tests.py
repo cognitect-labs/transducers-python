@@ -45,11 +45,21 @@ def onlyeven_idx(i, x):
         return x
 
 def geometric_series(a, r):
+    """An infinite series example w/generators."""
     power = 0
     yield a
     while True:
         power += 1
         yield a * r**power
+
+def alternating_transducer(step):
+    """Used to show compatibility w/transducer semantics."""
+    outer = {"prev": 1}
+    def alternate(r, x):
+        sign = outer["prev"]
+        outer["prev"] *= -1
+        return step(r, sign*x)
+    return alternate
 
 class TransducerTests(unittest.TestCase):
     """
@@ -218,6 +228,14 @@ class TransducerTests(unittest.TestCase):
         self.assertEqual(transduce(compose(partition_all(4), mapping(list)),
                          append, [], range(10)),
                          [[0,1,2,3],[4,5,6,7],[8,9]])
+
+    def test_compatibiliy_with_proper_transducers(self):
+        """Verifies we can transduce by compasing aganinst the reducer."""
+        self.assertEqual(transduce(taking(5),
+                         alternating_transducer(append),
+                         [],
+                         geometric_series(1, 2)),
+            [1, -2, 4, -8, 16])
 
 # Verbose tests to verify transducer correctness
 if __name__ == "__main__":
