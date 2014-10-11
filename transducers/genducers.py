@@ -172,6 +172,6 @@ def into(target_coll, generator, coll):
     """Given constructing function or instance of a target collection,
     transforms input collection through generator and outputs a new
     collection of type target_collection."""
-    return type(target_coll)(generator(coll)) \ # should we support this,
-           if not isinstance(target_coll, type) \ # or force instance to
-           else target_coll(generator(coll))      # be param?
+    return type(target_coll)(generator(coll)) \
+           if not isinstance(target_coll, type) \
+           else target_coll(generator(coll))

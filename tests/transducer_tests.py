@@ -237,6 +237,13 @@ class TransducerTests(unittest.TestCase):
                          geometric_series(1, 2)),
             [1, -2, 4, -8, 16])
 
+    def test_into_list(self):
+        """Verifies we can transduce using into."""
+        self.assertEqual(into([], mapping(lambda x: x*2), range(10)),
+                         [0, 2, 4, 6, 8, 10, 12, 14, 16, 18])
+        self.assertEqual(into(deque(), mapping(lambda x: x*2), range(10)),
+                         deque([0, 2, 4, 6, 8, 10, 12, 14, 16, 18]))
+
 # Verbose tests to verify transducer correctness
 if __name__ == "__main__":
     unittest.main()
