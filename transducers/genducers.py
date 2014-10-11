@@ -133,9 +133,11 @@ def partition_by(pred):
             if pred(item) == last:
                 temp.append(item)
             else:
-                yield (a for a in temp)
+                yield temp
                 temp = [item]
                 last = pred(item)
+        if temp:
+            yield temp
     return generator
 
 def partition_all(n):
@@ -144,10 +146,10 @@ def partition_all(n):
         for i, item in enumerate(coll, 1):
             temp.append(item)
             if not i % n:
-                yield (a for a in temp)
+                yield temp
                 temp = []
         if temp:
-            yield (a for a in temp)
+            yield temp
     return generator
 
 def random_sample(prob):
