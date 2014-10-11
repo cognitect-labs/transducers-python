@@ -230,7 +230,7 @@ class TransducerTests(unittest.TestCase):
                          [[0,1,2,3],[4,5,6,7],[8,9]])
 
     def test_compatibiliy_with_proper_transducers(self):
-        """Verifies we can transduce by compasing aganinst the reducer."""
+        """Verifies we can transduce by composing reducers."""
         self.assertEqual(transduce(taking(5),
                          alternating_transducer(append),
                          [],
