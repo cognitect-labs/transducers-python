@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+pypy tests/transducer_tests.py
+python tests/transducer_tests.py
+python3 tests/transducer_tests.py
