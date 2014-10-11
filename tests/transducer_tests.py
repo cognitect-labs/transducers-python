@@ -1,5 +1,14 @@
 from __future__ import division
+"""
+This test suite should pass python3, python2, and pypy:
 
+python tests/transducer_tests.py
+python3 tests/transducer_tests.py
+pypy tests/transducer_tests.py
+
+If it doesn't pass all three, don't commit changes unless you _really_ know
+what you are doing!
+"""
 import unittest
 from transducers import *
 from collections import deque
@@ -167,9 +176,8 @@ class TransducerTests(unittest.TestCase):
 
     def test_mf_correct(self):
         """Should be identical output to map and filter without transduction."""
-        self.assertEqual(map(msq, filter(fodd, range(10000))),
-
-                transduce(compose(filtering(fodd), mapping(msq)),
+        self.assertEqual([a for a in map(msq, filter(fodd, range(10000)))],
+                          transduce(compose(filtering(fodd), mapping(msq)),
                           append, [], range(10000)))
 
     def test_mapcatting(self):
