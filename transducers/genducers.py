@@ -161,5 +161,5 @@ def mapcatting(f):
     return compose(mapping(f), cat)
 
 
-def genduce(generator, reducer, start, coll):
+def transduce(generator, reducer, start, coll):
     return reduce(reducer, generator((a for a in coll)), start)
