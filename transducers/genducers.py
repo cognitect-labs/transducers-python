@@ -26,7 +26,7 @@ def taking(n):
     def generator(coll):
         for i, item in enumerate(coll):
             if i >= n:
-                raise StopIteration
+                break
             yield item
     return generator
 
@@ -63,7 +63,7 @@ def take_while(pred):
             if pred(item):
                 yield item
             else:
-                raise StopIteration
+                break
     return generator
 
 def drop(n):
