@@ -25,7 +25,9 @@ def compose(*fns):
 
 def rcompose(*fns):
     """Right compose for stack, left compose to traverse stack afterwards for
-    Clojure style transducers."""
+    Clojure style transducers. This is an _intended_ pun on 'reducer compose',
+    i.e., you should use it to compose against the reducer argument to
+    transduce if you want to use a Clojure style transducer."""
     return reduce(lambda f,g: lambda x: f(g(x)), fns)
 
 def taking(n):
