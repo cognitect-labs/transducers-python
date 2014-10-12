@@ -30,6 +30,10 @@ Do not change cgenducers.pyx directly at this point!
 # Build this to reduce over the final generator, compose to get generator.
 from functools import partial, reduce
 from random import random
+try:
+    import __builtin__
+except ImportError:
+    import builtins as __builtin__
 
 def compose(*fns):
     """Compose functions left to right - allows generators to compose with same
@@ -43,7 +47,7 @@ def rcompose(*fns):
     transduce if you want to use a Clojure style transducer."""
     return reduce(lambda f,g: lambda x: f(g(x)), fns)
 
-def taking(n):
+def take(n):
     """Returns n entites from collection."""
     def generator(coll):
         for i, item in enumerate(coll):
@@ -58,13 +62,13 @@ def cat(coll):
         for subitem in item:
             yield subitem
 
-def mapping(f):
+def map(f):
     """Map, for composition with generators that take coll as an argument."""
-    return partial(map, f)
+    return partial(__builtin__.map, f)
 
-def filtering(f):
+def filter(f):
     """Filter, for composition with generators that take coll as an argument."""
-    return partial(filter, f)
+    return partial(__builtin__.filter, f)
 
 def remove(pred):
     """Remove any item from collection on traversal if that item meets condition
@@ -194,10 +198,10 @@ def random_sample(prob):
                 yield item
     return generator
 
-def mapcatting(f):
+def mapcat(f):
     """Map a function to sub-collections then cat the subcollections into a
     collection at the next level up (traverses one level)."""
-    return compose(mapping(f), cat)
+    return compose(map(f), cat)
 
 def transduce(generator, reducer, start, coll):
     """Function that can be used to transduce over a collection. That is, it

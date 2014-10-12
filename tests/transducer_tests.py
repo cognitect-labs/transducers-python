@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from __future__ import division
+try:
+    import __builtin__
+except:
+    import builtins as __builtin__
 """
 This test suite should pass python3, python2, and pypy:
 
@@ -84,14 +88,14 @@ class TransducerTests(unittest.TestCase):
     Clojure conj/vector = Python append/list
     Clojure conj/list = Python dleft_append/deque
     """
-    def test_mapping(self):
-        self.assertEqual(transduce(mapping(lambda x: x**2),
+    def test_map(self):
+        self.assertEqual(transduce(map(lambda x: x**2),
                                   append, [], range(5)),
         # (transduce (map #(* %  %)) conj [] (range 5))
           [0, 1, 4, 9, 16])
 
-    def test_filtering(self):
-        self.assertEqual(transduce(filtering(lambda x: x%2 == 0),
+    def test_filter(self):
+        self.assertEqual(transduce(filter(lambda x: x%2 == 0),
                                   append, [], range(5)),
         # (transduce (filter even?) conj [] (range 5))
           [0, 2, 4])
@@ -102,13 +106,13 @@ class TransducerTests(unittest.TestCase):
           [1, 2, 3, 4])
 
     def test_mapcat(self):
-        self.assertEqual(transduce(mapcatting(reversed),
+        self.assertEqual(transduce(mapcat(reversed),
                                    append, [], [[3, 2, 1], [5, 4]]),
         # (transduce (mapcat reverse) conj [] [[3 2 1] [5 4]])
           [1, 2, 3, 4, 5])
 
-    def test_taking(self):
-        self.assertEqual(transduce(taking(3), append, [], range(10)),
+    def test_take(self):
+        self.assertEqual(transduce(take(3), append, [], range(10)),
         # (transduce (take 3) conj [] (range 10))
           [0, 1, 2])
 
@@ -186,12 +190,12 @@ class TransducerTests(unittest.TestCase):
 
     def test_big_comp(self):
         """We just want this one to run."""
-        self.assertTrue(transduce(compose(mapcatting(reversed),
-                                 mapping(msq),
-                                 filtering(fodd),
+        self.assertTrue(transduce(compose(mapcat(reversed),
+                                 map(msq),
+                                 filter(fodd),
                                  random_sample(0.20),
                                  partition_all(4),
-                                 taking(6)),
+                                 take(6)),
                          append, [],
                          [range(10000),
                           range(10000),
@@ -199,25 +203,26 @@ class TransducerTests(unittest.TestCase):
 
     def test_mf_correct(self):
         """Should be identical output to map and filter without transduction."""
-        self.assertEqual([a for a in map(msq, filter(fodd, range(10000)))],
-                          transduce(compose(filtering(fodd), mapping(msq)),
+        self.assertEqual([a for a in __builtin__.map(msq, 
+                                     __builtin__.filter(fodd, range(10000)))],
+                          transduce(compose(filter(fodd), map(msq)),
                           append, [], range(10000)))
 
-    def test_mapcatting(self):
-        """Verify that mapcatting works."""
-        self.assertEqual(transduce(mapcatting(reversed),
+    def test_mapcat(self):
+        """Verify that mapcat works."""
+        self.assertEqual(transduce(mapcat(reversed),
                          append, [], [[4,3,2], [7,6,5]]),
                          [2, 3, 4, 5, 6, 7])
 
     def test_frontappend(self):
         """Verify deque alternative reduction is correct (collection agnostic)."""
-        self.assertEqual(transduce(compose(taking(5), mapping(msq)),
+        self.assertEqual(transduce(compose(take(5), map(msq)),
                                    dleft_append, deque(), range(10)),
                                    deque([16, 9, 4, 1, 0]))
 
     def test_generator_function_input(self):
         """Test input of geometric series that would be infinite w/o short circuit."""
-        self.assertEqual(transduce(taking(3),
+        self.assertEqual(transduce(take(3),
                                    add,
                                    Fraction(0, 1),
                                    geometric_series(Fraction(1, 1), Fraction(1, 2))),
@@ -232,19 +237,19 @@ class TransducerTests(unittest.TestCase):
 
     def test_string_to_ints(self):
         """Transduce from string into sum of ints."""
-        self.assertEqual(transduce(compose(mapping(ord), taking(10)),
+        self.assertEqual(transduce(compose(map(ord), take(10)),
                                    add, 0, "This is just some string!"),
                                    915)
 
-    def test_partition_all_mapping(self):
-        """Test mapping container type to generator partitions."""
-        self.assertEqual(transduce(compose(partition_all(4), mapping(list)),
+    def test_partition_all_map(self):
+        """Test map container type to generator partitions."""
+        self.assertEqual(transduce(compose(partition_all(4), map(list)),
                          append, [], range(10)),
                          [[0,1,2,3],[4,5,6,7],[8,9]])
 
     def test_compatibiliy_with_proper_transducers(self):
         """Verifies we can transduce by composing reducers."""
-        self.assertEqual(transduce(taking(5),
+        self.assertEqual(transduce(take(5),
                          alternating_transducer(append),
                          [],
                          geometric_series(1, 2)),
@@ -252,9 +257,9 @@ class TransducerTests(unittest.TestCase):
 
     def test_into_list(self):
         """Verifies we can transduce using into."""
-        self.assertEqual(into([], mapping(lambda x: x*2), range(10)),
+        self.assertEqual(into([], map(lambda x: x*2), range(10)),
                          [0, 2, 4, 6, 8, 10, 12, 14, 16, 18])
-        self.assertEqual(into(deque(), mapping(lambda x: x*2), range(10)),
+        self.assertEqual(into(deque(), map(lambda x: x*2), range(10)),
                          deque([0, 2, 4, 6, 8, 10, 12, 14, 16, 18]))
 
 # Verbose tests to verify transducer correctness

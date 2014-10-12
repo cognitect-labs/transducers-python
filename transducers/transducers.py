@@ -11,7 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from functools import reduce #<-- only for py3 compat
+from functools import reduce # <-- only for py3 compat
+try:
+    import __builtin__
+except:
+    import builtins as __builtin__
 """
 These are reference implementations of transducers for testing correctness
 only.

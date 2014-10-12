@@ -34,7 +34,7 @@ def geometric_series(a, r):
         power += 1
         yield a * r**power
 
-T.transduce(T.compose(T.taking(3), T.mapping(float)),
+T.transduce(T.compose(T.take(3), T.map(float)),
             add,
             Fraction(0, 1),
             geometric_series(Fraction(1, 1), Fraction(1, 2)))
