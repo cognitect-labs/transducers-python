@@ -262,6 +262,16 @@ class TransducerTests(unittest.TestCase):
         self.assertEqual(into(deque(), map(lambda x: x*2), range(10)),
                          deque([0, 2, 4, 6, 8, 10, 12, 14, 16, 18]))
 
+    def test_shortcircuit(self):
+        """Makes sure we terminate when take is later in the chain."""
+        self.assertTrue(transduce(compose(map(lambda x: x*x),
+                                          filter(lambda x:x%2),
+                                          take(10)),
+                                          append,
+                                          [],
+                                          geometric_series(Fraction(1,1),
+                                                           Fraction(1,2))))
+
 # Verbose tests to verify transducer correctness
 if __name__ == "__main__":
     unittest.main()
