@@ -63,12 +63,19 @@ def cat(coll):
             yield subitem
 
 def map(f):
-    """Map, for composition with generators that take coll as an argument."""
-    return partial(__builtin__.map, f)
+    """"""
+    def generator(coll):
+        for x in coll:
+            yield f(x)
+    return generator
 
-def filter(f):
+def filter(pred):
     """Filter, for composition with generators that take coll as an argument."""
-    return partial(__builtin__.filter, f)
+    def generator(coll):
+        for x in coll:
+            if pred(x):
+                yield x
+    return generator
 
 def remove(pred):
     """Remove any item from collection on traversal if that item meets condition
