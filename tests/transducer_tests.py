@@ -14,7 +14,7 @@
 from __future__ import division
 try:
     import __builtin__
-except:
+except ImportError: # <-- hack for Python3
     import builtins as __builtin__
 """
 This test suite should pass python3, python2, and pypy:

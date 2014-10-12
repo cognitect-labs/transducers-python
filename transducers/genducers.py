@@ -30,10 +30,6 @@ Do not change cgenducers.pyx directly at this point!
 # Build this to reduce over the final generator, compose to get generator.
 from functools import partial, reduce
 from random import random
-try:
-    import __builtin__
-except ImportError:
-    import builtins as __builtin__
 
 def compose(*fns):
     """Compose functions left to right - allows generators to compose with same
