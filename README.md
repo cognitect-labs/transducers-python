@@ -12,6 +12,10 @@ For more information about Clojure transducers and transducer semantics see the 
 
     pip install transducers ## other arguments TBD
 
+## Compatibility
+
+transducers-python is compatible with Python 2.7.8, Python 3.X, and [PyPy](http://pypy.org/). It may be compatible with other Python Implementations as well.
+
 ## Documentation
 
 [link](tbd)
