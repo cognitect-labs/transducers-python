@@ -41,7 +41,7 @@ def reduce(function, iterable, initializer=None):
         if step is not Reduced: # <-- here's where we can terminate early.
             accum_value = step
         else:
-            return accum_value
+            break
     # Completing step will fire if needed.
     try:
         accum_value = function(accum_value)
