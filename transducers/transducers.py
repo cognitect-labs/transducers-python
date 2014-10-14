@@ -15,7 +15,9 @@ import functools
 from random import random
 """
 The transducers backend is less performant but consistnet with the semantics
-of transducers in Clojure.
+of transducers in Clojure. It deliberately avoids an OO layer and is meant to
+be considered an alternative to both a (not yet implemented)  OO and generator
+backend.
 """
 class Reduced(object):
     """Only for 'is' comparison to signal early termination of reduce."""
@@ -39,15 +41,21 @@ def reduce(function, iterable, initializer=None):
     for x in it:
         step = function(accum_value, x)
         if step is not Reduced: # <-- here's where we can terminate early.
-            accum_value = step
+            accum_value = step  #     presently buggy in composition.
         else:
             break
     # Completing step will fire if needed.
+    # --- construction area - how is take returning Reduced at completion step?
+    # --- in completion step? 
     try:
+        _accum_value = accum_value #<-- only temp for debugging
         accum_value = function(accum_value)
-    except:
+        assert accum_value is not Reduced #<-- only temp for debugging
+    except TypeError:
         pass # <-- hack at moment because Python reducers don't take single
              #     arity like transducers.
+    except AssertionError: #<-- only temp for debugging
+        return _accum_value # <-- only temp for debugging
     return accum_value
 
 
@@ -102,8 +110,7 @@ def mapcat(f):
 def take(n):
     """Taking transducer."""
     def xducer(step):
-        outer_vars = {"counter": 0} # <-- ugh, state in closures w/o
-                                    #     nonlocal from Python 3 :(
+        outer_vars = {"counter": 0}
         def _reduce(r, x=Missing):
             if x is Missing:
                 return step(r)
