@@ -14,9 +14,9 @@
 import functools
 from random import random
 """
-The transducers backend is less performant but consistnet with the semantics
+The transducers backend is less performant but consistent with the semantics
 of transducers in Clojure. It deliberately avoids an OO layer and is meant to
-be considered an alternative to both a (not yet implemented)  OO and generator
+be considered an alternative to both a (not implemented)  OO and generator
 backend.
 """
 class Reduced(object):
@@ -45,18 +45,12 @@ def reduce(function, iterable, initializer=None):
         else:
             break
     # Completing step will fire if needed.
-    # --- construction area - how is take returning Reduced at completion step?
-    # --- in completion step? 
     try:
-        _accum_value = accum_value #<-- only temp for debugging
-        accum_value = function(accum_value)
-        assert accum_value is not Reduced #<-- only temp for debugging
+        last_step = function(accum_value)
+    # Except this is append a reducer a la append  and it doesn't have arity 1
     except TypeError:
-        pass # <-- hack at moment because Python reducers don't take single
-             #     arity like transducers.
-    except AssertionError: #<-- only temp for debugging
-        return _accum_value # <-- only temp for debugging
-    return accum_value
+        return accum_value
+    return accum_value if last_step is Reduced else last_step
 
 
 def compose(*fns):
@@ -79,9 +73,7 @@ def map(f):
     """Transducer version of map."""
     def xducer(step):
         def _reduce(r, x=Missing):
-            if x is Missing:
-                return step(r)
-            return step(r, f(x))
+            return step(r) if x is Missing else step(r, f(x))
         return _reduce
     return xducer
 
@@ -98,9 +90,7 @@ def filter(pred):
 def cat(step):
     """Cat helper function/transducer."""
     def _reduce(r, x=Missing):
-        if x is Missing:
-            return step(r)
-        return functools.reduce(step, x, r)
+        return step(r) if x is Missing else functools.reduce(step, x, r)
     return _reduce
 
 def mapcat(f):
@@ -205,9 +195,7 @@ def remove(pred):
         def _reduce(r, x=Missing):
             if x is Missing:
                 return step(r)
-            if not pred(x):
-                return step(r, x)
-            return r
+            return step(r, x) if not pred(x) else r
         return _reduce
     return xducer
 
@@ -239,8 +227,7 @@ def dedupe(step):
     return _reduce
 
 def partition_by(pred):
-    """Need for completed may force OO implementation. Have to sleep on it.
-    Alternatively could provide same arity structure as in Clojure."""
+    """Well, don't need OO but partition* transducers are slowest by far."""
     def xducer(step):
         outer = {"last": False,
                  "temp": []}
@@ -253,7 +240,8 @@ def partition_by(pred):
             else:
                 outer["last"] = pred(x)
                 _temp = outer["temp"][:]
-                outer["temp"] = [x]
+                del outer["temp"][:]
+                outer["temp"].append(x)
                 return step(r, _temp) if _temp else r
         return _reduce
     return xducer
@@ -268,7 +256,9 @@ def partition_all(n):
             if not outer["idx"] % n:
                 outer["idx"] += 1
                 _temp = outer["temp"][:]
-                outer["temp"] = [x]
+                del outer["temp"][:]    # cheaper than getting
+                outer["temp"].append(x) # a new list.
+#                outer["temp"] = [x]
                 return step(r, _temp) if _temp else r
             outer["temp"].append(x)
             outer["idx"] += 1
@@ -281,9 +271,7 @@ def random_sample(prob):
         def _reduce(r, x=Missing):
             if x is Missing:
                 return step(r)
-            if random() < prob:
-                return step(r, x)
-            return r
+            return step(r, x) if random() < prob else r
         return _reduce
     return xducer
 
