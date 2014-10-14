@@ -63,7 +63,7 @@ def transduce(transducer, reducer, start, coll):
     """
     return reduce(transducer(reducer), coll, start)
 
-def mapping(f):
+def map(f):
     """Transducer version of map."""
     def xducer(step):
         def _reduce(r=None, x=None):
@@ -73,8 +73,8 @@ def mapping(f):
         return _reduce
     return xducer
 
-def filtering(pred):
-    """Transducer version of filtering."""
+def filter(pred):
+    """Transducer version of filter."""
     def xducer(step):
         def _reduce(r=None, x=None):
             if x is None:
@@ -91,9 +91,9 @@ def cat(step):
         return functools.reduce(step, x, r)
     return _reduce
 
-def mapcatting(f):
+def mapcat(f):
     """Mapcat transducer."""
-    return compose(mapping(f), cat)
+    return compose(map(f), cat)
 
 def take(n):
     """Taking transducer."""
@@ -189,13 +189,24 @@ def keep(pred):
         return _reduce
     return xducer
 
-def keep_indexed(f):
+def remove(pred):
     def xducer(step):
-        outer["idx"] = 0
         def _reduce(r=None, x=None):
             if x is None:
                 return step(r)
-            res = f(outer["idx"], item)
+            if not pred(x):
+                return step(r, x)
+            return r
+        return _reduce
+    return xducer
+
+def keep_indexed(f):
+    def xducer(step):
+        outer = {"idx": 0}
+        def _reduce(r=None, x=None):
+            if x is None:
+                return step(r)
+            res = f(outer["idx"], x)
             outer["idx"] += 1
             return step(r, res) if res is not None else r
         return _reduce

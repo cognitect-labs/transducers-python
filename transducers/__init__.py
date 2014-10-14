@@ -18,3 +18,7 @@
 # from . import cgenducers as genducers
 from . import genducers
 from .genducers import *
+
+# -- uncomment these lines to switch backend to transducers a la Clojure
+#from . import transducers
+#from .transducers import *
