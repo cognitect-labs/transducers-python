@@ -14,16 +14,20 @@
 import functools
 from random import random
 """
-These are reference implementations of transducers for testing correctness
-only.
+The transducers backend is less performant but consistnet with the semantics
+of transducers in Clojure.
 """
 class Reduced(object):
     """Only for 'is' comparison to signal early termination of reduce."""
     pass
 
+class Missing(object):
+    """Only for 'is' comparison to simplify arity testing."""
+    pass
+
 def reduce(function, iterable, initializer=None):
-    """Using Python documentation's function to allow capability to test for
-    reduced state.
+    """Using Python documentation's function as base, adding check for
+    reduced state and call for final completion step.
     """
     it = iter(iterable)
     if initializer is None:
@@ -66,8 +70,8 @@ def transduce(transducer, reducer, start, coll):
 def map(f):
     """Transducer version of map."""
     def xducer(step):
-        def _reduce(r=None, x=None):
-            if x is None:
+        def _reduce(r, x=Missing):
+            if x is Missing:
                 return step(r)
             return step(r, f(x))
         return _reduce
@@ -76,8 +80,8 @@ def map(f):
 def filter(pred):
     """Transducer version of filter."""
     def xducer(step):
-        def _reduce(r=None, x=None):
-            if x is None:
+        def _reduce(r, x=Missing):
+            if x is Missing:
                 return step(r)
             return step(r, x) if pred(x) else r
         return _reduce
@@ -85,8 +89,8 @@ def filter(pred):
 
 def cat(step):
     """Cat helper function/transducer."""
-    def _reduce(r=None, x=None):
-        if x is None:
+    def _reduce(r, x=Missing):
+        if x is Missing:
             return step(r)
         return functools.reduce(step, x, r)
     return _reduce
@@ -100,8 +104,8 @@ def take(n):
     def xducer(step):
         outer_vars = {"counter": 0} # <-- ugh, state in closures w/o
                                     #     nonlocal from Python 3 :(
-        def _reduce(r=None, x=None):
-            if x is None:
+        def _reduce(r, x=Missing):
+            if x is Missing:
                 return step(r)
             if outer_vars["counter"] < n:
                 outer_vars["counter"] += 1
@@ -113,8 +117,8 @@ def take(n):
 
 def take_while(pred):
     def xducer(step):
-        def _reduce(r=None, x=None):
-            if x is None:
+        def _reduce(r, x=Missing):
+            if x is Missing:
                 return step(r)
             if pred(x):
                 return step(r, x)
@@ -126,8 +130,8 @@ def take_while(pred):
 def drop(n):
     def xducer(step):
         outer = {"count": 0}
-        def _reduce(r=None, x=None):
-            if x is None:
+        def _reduce(r, x=Missing):
+            if x is Missing:
                 return step(r)
             if outer["count"] < n:
                 outer["count"] += 1
@@ -140,8 +144,8 @@ def drop(n):
 def drop_while(pred):
     def xducer(step):
         outer = {"trigger": False}
-        def _reduce(r=None, x=None):
-            if x is None:
+        def _reduce(r, x=Missing):
+            if x is Missing:
                 return step(r)
             if outer["trigger"]:
                 return step(r, x)
@@ -155,8 +159,8 @@ def drop_while(pred):
 def take_nth(n):
     def xducer(step):
         outer = {"idx": 0}
-        def _reduce(r=None, x=None):
-            if x is None:
+        def _reduce(r, x=Missing):
+            if x is Missing:
                 return step(r)
             if outer["idx"] % n:
                 outer["idx"] += 1
@@ -169,8 +173,8 @@ def take_nth(n):
 
 def replace(smap):
     def xducer(step):
-        def _reduce(r=None, x=None):
-            if x is None:
+        def _reduce(r, x=Missing):
+            if x is Missing:
                 return step(r)
             if x in smap:
                 return step(r, smap[x])
@@ -181,8 +185,8 @@ def replace(smap):
 
 def keep(pred):
     def xducer(step):
-        def _reduce(r=None, x=None):
-            if x is None:
+        def _reduce(r, x=Missing):
+            if x is Missing:
                 return step(r)
             res = pred(x)
             return step(r, res) if res is not None else r
@@ -191,8 +195,8 @@ def keep(pred):
 
 def remove(pred):
     def xducer(step):
-        def _reduce(r=None, x=None):
-            if x is None:
+        def _reduce(r, x=Missing):
+            if x is Missing:
                 return step(r)
             if not pred(x):
                 return step(r, x)
@@ -203,8 +207,8 @@ def remove(pred):
 def keep_indexed(f):
     def xducer(step):
         outer = {"idx": 0}
-        def _reduce(r=None, x=None):
-            if x is None:
+        def _reduce(r, x=Missing):
+            if x is Missing:
                 return step(r)
             res = f(outer["idx"], x)
             outer["idx"] += 1
@@ -214,8 +218,8 @@ def keep_indexed(f):
 
 def dedupe(step):
     outer = {}
-    def _reduce(r=None, x=None):
-        if x is None:
+    def _reduce(r, x=Missing):
+        if x is Missing:
             return step(r)
         if "prev" not in outer:
             outer["prev"] = x
@@ -233,8 +237,8 @@ def partition_by(pred):
     def xducer(step):
         outer = {"last": False,
                  "temp": []}
-        def _reduce(r=None, x=None):
-            if x is None:
+        def _reduce(r, x=Missing):
+            if x is Missing:
                 return step(r, outer["temp"]) if outer["temp"] else step(r)
             if pred(x) == outer["last"]:
                 outer["temp"].append(x)
@@ -251,8 +255,8 @@ def partition_all(n):
     def xducer(step):
         outer = {"temp": [],
                  "idx": 0}
-        def _reduce(r=None, x=None):
-            if x is None:
+        def _reduce(r, x=Missing):
+            if x is Missing:
                 return step(r, outer["temp"]) if outer["temp"] else step(r)
             if not outer["idx"] % n:
                 outer["idx"] += 1
@@ -267,11 +271,24 @@ def partition_all(n):
 
 def random_sample(prob):
     def xducer(step):
-        def _reduce(r=None, x=None):
-            if x is None:
+        def _reduce(r, x=Missing):
+            if x is Missing:
                 return step(r)
             if random() < prob:
                 return step(r, x)
             return r
         return _reduce
     return xducer
+
+def _append(l, x):
+    """Local append for into to use."""
+    l.append(x)
+    return l
+
+def into(target, xducer, coll):
+    """Only honors things that append at the moment."""
+    return transduce(xducer, _append, type(target)(), coll)
+
+def eduction(xf, coll):
+    """Return a generator with transform applied. Not implemented."""
+    pass

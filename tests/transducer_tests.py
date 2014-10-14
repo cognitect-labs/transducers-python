@@ -26,8 +26,8 @@ pypy tests/transducer_tests.py
 If it doesn't pass all three, don't commit changes unless you _really_ know
 what you are doing!
 """
-import unittest
 from transducers import *
+import unittest
 from collections import deque
 from fractions import Fraction
 
