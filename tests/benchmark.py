@@ -15,7 +15,7 @@ def run_tests(X):
                       X.dedupe,
                       X.random_sample(0.70),
                       X.partition_all(4),
-                      X.take(10000000),
+                      X.take(4 * scale**3),
                       X.mapcat(reversed),
                       X.drop_while(lambda x: x < 20),
                       X.remove(lambda x: x%7),

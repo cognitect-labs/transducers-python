@@ -173,7 +173,8 @@ def partition_by(pred):
                 temp.append(item)
             else:
                 yield temp
-                temp = [item]
+                del temp[:]
+                temp.append(item)
                 last = pred(item)
         if temp:
             yield temp
@@ -187,7 +188,7 @@ def partition_all(n):
             temp.append(item)
             if not i % n:
                 yield temp
-                temp = []
+                del temp[:]
         if temp:
             yield temp
     return generator
