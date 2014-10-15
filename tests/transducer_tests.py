@@ -279,9 +279,11 @@ class TransducerTests(unittest.TestCase):
                                   [[0, 1, 2, 3], [4]])
 
     def test_completion_backward(self):
-        """Make sure we completed partition_all when short circuiting by take
-        later (shouldn't be an issue, but...)"""
-        transduce(compose(partition_all(4), take(5)), append, [], range(10))
+        """Make sure we completed partition_by when short circuiting by take
+        later."""
+        self.assertEqual(transduce(compose(partition_by(fodd), take(3)),
+                         append, [], [1, 1, 1, 2, 2, 2, 3]),
+                         [[1, 1, 1], [2, 2, 2], [3]])
 
     def two_completing_steps(self):
         """Make sure two completing steps fire in correct order."""

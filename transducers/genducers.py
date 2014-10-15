@@ -172,7 +172,8 @@ def partition_by(pred):
             if pred(item) == last:
                 temp.append(item)
             else:
-                yield temp
+                if temp:
+                    yield temp
                 last = pred(item)
                 temp = [item]
         if temp:
