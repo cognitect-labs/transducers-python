@@ -26,7 +26,7 @@ pypy tests/transducer_tests.py
 If it doesn't pass all three, don't commit changes unless you _really_ know
 what you are doing!
 """
-from transducers.genducers import *
+from transducers import *
 import unittest
 from collections import deque
 from fractions import Fraction
@@ -285,6 +285,10 @@ class TransducerTests(unittest.TestCase):
 
     def two_completing_steps(self):
         """Make sure two completing steps fire in correct order."""
+        self.assertEqual(transduce(compose(partition_by(fodd), partition_all(2)),
+                                   append, [], range(10)),
+                         [[[0], [1]], [[2], [3]], [[4], [5]], [[6], [7]], [[8], [9]]])
+
 
 # Verbose tests to verify transducer correctness
 if __name__ == "__main__":
