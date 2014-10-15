@@ -26,7 +26,7 @@ pypy tests/transducer_tests.py
 If it doesn't pass all three, don't commit changes unless you _really_ know
 what you are doing!
 """
-from transducers import *
+from transducers.genducers import *
 import unittest
 from collections import deque
 from fractions import Fraction
@@ -271,6 +271,20 @@ class TransducerTests(unittest.TestCase):
                                           [],
                                           geometric_series(Fraction(1,1),
                                                            Fraction(1,2))))
+
+    def test_completion_forward(self):
+        """Make sure partition_all works when short circuited by take."""
+        self.assertEqual(transduce(compose(take(5), partition_all(4)), 
+                                  append, [], range(10)),
+                                  [[0, 1, 2, 3], [4]])
+
+    def test_completion_backward(self):
+        """Make sure we completed partition_all when short circuiting by take
+        later (shouldn't be an issue, but...)"""
+        transduce(compose(partition_all(4), take(5)), append, [], range(10))
+
+    def two_completing_steps(self):
+        """Make sure two completing steps fire in correct order."""
 
 # Verbose tests to verify transducer correctness
 if __name__ == "__main__":

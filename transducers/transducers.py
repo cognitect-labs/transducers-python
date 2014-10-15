@@ -27,18 +27,17 @@ class Missing(object):
     """Only for 'is' comparison to simplify arity testing."""
     pass
 
-def reduce(function, iterable, initializer=None):
+def reduce(function, iterable, initializer=Missing):
     """Using Python documentation's function as base, adding check for
     reduced state and call for final completion step.
     """
-    it = iter(iterable)
-    if initializer is None:
-        try:
-            initializer = next(it)
-        except StopIteration:
-            raise TypeError('reduce() of empty sequence with no initial value')
-    accum_value = initializer
-    for x in it:
+    accum_value = function() if initializer is Missing else initializer
+    if initializer is Missing:
+        accum_value = function() # 0 arity initializer.
+    else:
+        accum_value = initializer
+
+    for x in iterable:
         step = function(accum_value, x)
         if step is not Reduced: # <-- here's where we can terminate early.
             accum_value = step  #     presently buggy in composition.
