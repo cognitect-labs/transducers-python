@@ -43,16 +43,7 @@ def reduce(function, iterable, initializer=Missing):
             accum_value = step
         else:
             break
-
-    # Completing step will fire if needed.
-    try:
-        step = function(accum_value)
-        if (step is Reduced) or step == accum_value:
-            return accum_value
-        return step
-    # Except this is a Python reducer and doesn't have arity 0.
-    except TypeError:
-        return accum_value
+    return accum_value
 
 
 def compose(*fns):
@@ -62,14 +53,16 @@ def compose(*fns):
     """
     return functools.reduce(lambda f,g: lambda x: f(g(x)), fns)
 
-def transduce(transducer, reducer, start, coll):
+def transduce(xform, f, start, coll):
     """Return the results of calling transduce on the reducing function,
     can compose transducers using compose defined above.
 
     Note: could possibly switch coll/start order if we want to match Python
     reduce instead of Clojure reduce.
     """
-    return reduce(transducer(reducer), coll, start)
+    reducer = xform(f)
+    ret = reduce(reducer, coll, start)
+    return reducer(ret)
 
 def map(f):
     """Transducer version of map."""
@@ -297,8 +290,10 @@ def random_sample(prob):
         return _random_sample_step
     return _random_sample_xducer
 
-def _append(l, x):
+def _append(l=Missing, x=Missing):
     """Local append for into to use."""
+    if l is Missing: return []
+    if x is Missing: return l
     l.append(x)
     return l
 

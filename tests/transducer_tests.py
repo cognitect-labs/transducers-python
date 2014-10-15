@@ -32,19 +32,28 @@ from collections import deque
 from fractions import Fraction
 
 # helping reducers
-from operator import add, mul
+def add(x=Missing, y=Missing):
+    if x is Missing: return 0
+    if y is Missing: return x
+    return x + y
 
 # list
-def append(l, item):
+def append(l=Missing, item=Missing):
+    if l is Missing: return []
+    if item is Missing: return l
     l.append(item)
     return l
 
 # deques
-def dright_append(d, item):
+def dright_append(d=Missing, item=Missing):
+    if d is Missing: return deque()
+    if item is Missing: return d
     d.append(item)
     return d
 
-def dleft_append(d, item):
+def dleft_append(d=Missing, item=Missing):
+    if d is Missing: return deque()
+    if item is Missing: return d
     d.appendleft(item)
     return d
 
@@ -72,7 +81,9 @@ def geometric_series(a, r):
 def alternating_transducer(step):
     """Used to show compatibility w/transducer semantics."""
     outer = {"prev": 1}
-    def alternate(r, x):
+    def alternate(r=Missing, x=Missing):
+        if r is Missing: return []
+        if x is Missing: return r
         sign = outer["prev"]
         outer["prev"] *= -1
         return step(r, sign*x)
