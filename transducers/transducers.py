@@ -232,7 +232,7 @@ def partition_by(pred):
     """Well, don't need OO but partition* transducers are slowest by far."""
     def _partition_by_xducer(step):
 
-        outer = {"last": False,
+        outer = {"last": Missing,
                  "temp": []}
 
         def _partition_by_step(r, x=Missing):
@@ -246,15 +246,19 @@ def partition_by(pred):
                 return step(r, _temp)
 
             # arity 2 - normal step.
-            if pred(x) == outer["last"]:
+            past_val = outer["last"]
+            present_val = pred(x)
+            outer["last"] = present_val
+            if past_val is Missing or present_val == past_val:
                 outer["temp"].append(x)
                 return r
             else:
-                outer["last"] = pred(x)
                 _temp = outer["temp"][:]
                 del outer["temp"][:]
-                outer["temp"].append(x)
-                return step(r, _temp) if _temp else r
+                ret = step(r, _temp)
+                if ret is not Reduced:
+                    outer["temp"].append(x)
+                return ret
 
         return _partition_by_step
     return _partition_by_xducer
