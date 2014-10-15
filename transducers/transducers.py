@@ -62,7 +62,7 @@ def transduce(xform, f, start, coll):
     """
     reducer = xform(f)
     ret = reduce(reducer, coll, start)
-    return reducer(ret)
+    return reducer(ret) # completing step moved to here
 
 def map(f):
     """Transducer version of map."""
