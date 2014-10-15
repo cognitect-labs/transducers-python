@@ -40,16 +40,19 @@ def reduce(function, iterable, initializer=Missing):
     for x in iterable:
         step = function(accum_value, x)
         if step is not Reduced: # <-- here's where we can terminate early.
-            accum_value = step  #     presently buggy in composition.
+            accum_value = step
         else:
             break
+
     # Completing step will fire if needed.
     try:
-        last_step = function(accum_value)
-    # Except this is append a reducer a la append  and it doesn't have arity 1
+        step = function(accum_value)
+        if (step is Reduced) or step == accum_value:
+            return accum_value
+        return step
+    # Except this is a Python reducer and doesn't have arity 0.
     except TypeError:
         return accum_value
-    return accum_value if last_step is Reduced else last_step
 
 
 def compose(*fns):
@@ -70,27 +73,27 @@ def transduce(transducer, reducer, start, coll):
 
 def map(f):
     """Transducer version of map."""
-    def xducer(step):
-        def _reduce(r, x=Missing):
+    def _map_xducer(step):
+        def _map_step(r, x=Missing):
             return step(r) if x is Missing else step(r, f(x))
-        return _reduce
-    return xducer
+        return _map_step
+    return _map_xducer
 
 def filter(pred):
     """Transducer version of filter."""
-    def xducer(step):
-        def _reduce(r, x=Missing):
+    def _filter_xducer(step):
+        def _filter_step(r, x=Missing):
             if x is Missing:
                 return step(r)
             return step(r, x) if pred(x) else r
-        return _reduce
-    return xducer
+        return _filter_step
+    return _filter_xducer
 
 def cat(step):
     """Cat helper function/transducer."""
-    def _reduce(r, x=Missing):
+    def _cat_step(r, x=Missing):
         return step(r) if x is Missing else functools.reduce(step, x, r)
-    return _reduce
+    return _cat_step
 
 def mapcat(f):
     """Mapcat transducer."""
@@ -98,9 +101,9 @@ def mapcat(f):
 
 def take(n):
     """Taking transducer."""
-    def xducer(step):
+    def _take_xducer(step):
         outer_vars = {"counter": 0}
-        def _reduce(r, x=Missing):
+        def _take_step(r, x=Missing):
             if x is Missing:
                 return step(r)
             if outer_vars["counter"] < n:
@@ -108,25 +111,25 @@ def take(n):
                 return step(r, x)
             else:
                 return Reduced
-        return _reduce
-    return xducer
+        return _take_step
+    return _take_xducer
 
 def take_while(pred):
-    def xducer(step):
-        def _reduce(r, x=Missing):
+    def _take_while_xducer(step):
+        def _take_while_step(r, x=Missing):
             if x is Missing:
                 return step(r)
             if pred(x):
                 return step(r, x)
             else:
                 return Reduced
-        return _reduce
-    return xducer
+        return _take_while_step
+    return _take_while_xducer
 
 def drop(n):
-    def xducer(step):
+    def _drop_xducer(step):
         outer = {"count": 0}
-        def _reduce(r, x=Missing):
+        def _drop_step(r, x=Missing):
             if x is Missing:
                 return step(r)
             if outer["count"] < n:
@@ -134,13 +137,13 @@ def drop(n):
                 return r
             else:
                 return step(r, x)
-        return _reduce
-    return xducer
+        return _drop_step
+    return _drop_xducer
 
 def drop_while(pred):
-    def xducer(step):
+    def _drop_while_xducer(step):
         outer = {"trigger": False}
-        def _reduce(r, x=Missing):
+        def _drop_while_step(r, x=Missing):
             if x is Missing:
                 return step(r)
             if outer["trigger"]:
@@ -149,13 +152,13 @@ def drop_while(pred):
                 outer["trigger"] = True
                 return step(r, x)
             return r
-        return _reduce
-    return xducer
+        return _drop_while_step
+    return _drop_while_xducer
 
 def take_nth(n):
-    def xducer(step):
+    def _take_nth_xducer(step):
         outer = {"idx": 0}
-        def _reduce(r, x=Missing):
+        def _take_nth_step(r, x=Missing):
             if x is Missing:
                 return step(r)
             if outer["idx"] % n:
@@ -164,55 +167,55 @@ def take_nth(n):
             else:
                 outer["idx"] += 1
                 return step(r, x)
-        return _reduce
-    return xducer
+        return _take_nth_step
+    return _take_nth_xducer
 
 def replace(smap):
-    def xducer(step):
-        def _reduce(r, x=Missing):
+    def _replace_xducer(step):
+        def _replace_step(r, x=Missing):
             if x is Missing:
                 return step(r)
             if x in smap:
                 return step(r, smap[x])
             else:
                 return step(r, x)
-        return _reduce
-    return xducer
+        return _replace_step
+    return _replace_xducer
 
 def keep(pred):
-    def xducer(step):
-        def _reduce(r, x=Missing):
+    def _keep_xducer(step):
+        def _keep_step(r, x=Missing):
             if x is Missing:
                 return step(r)
             res = pred(x)
             return step(r, res) if res is not None else r
-        return _reduce
-    return xducer
+        return _keep_step
+    return _keep_xducer
 
 def remove(pred):
-    def xducer(step):
-        def _reduce(r, x=Missing):
+    def _remove_xducer(step):
+        def _remove_step(r, x=Missing):
             if x is Missing:
                 return step(r)
             return step(r, x) if not pred(x) else r
-        return _reduce
-    return xducer
+        return _remove_step
+    return _remove_xducer
 
 def keep_indexed(f):
-    def xducer(step):
+    def _keep_indexed_xducer(step):
         outer = {"idx": 0}
-        def _reduce(r, x=Missing):
+        def _keep_indexed_step(r, x=Missing):
             if x is Missing:
                 return step(r)
             res = f(outer["idx"], x)
             outer["idx"] += 1
             return step(r, res) if res is not None else r
-        return _reduce
-    return xducer
+        return _keep_indexed_step
+    return _keep_indexed_xducer
 
 def dedupe(step):
     outer = {}
-    def _reduce(r, x=Missing):
+    def _dedupe_step(r, x=Missing):
         if x is Missing:
             return step(r)
         if "prev" not in outer:
@@ -223,16 +226,26 @@ def dedupe(step):
             return step(r, x)
         else:
             return r
-    return _reduce
+    return _dedupe_step
 
 def partition_by(pred):
     """Well, don't need OO but partition* transducers are slowest by far."""
-    def xducer(step):
+    def _partition_by_xducer(step):
+
         outer = {"last": False,
                  "temp": []}
-        def _reduce(r, x=Missing):
+
+        def _partition_by_step(r, x=Missing):
+
+            # arity 1 - called on completion. 
             if x is Missing:
-                return step(r, outer["temp"]) if outer["temp"] else step(r)
+                if not outer["temp"]:
+                    return r
+                _temp = outer["temp"][:]
+                del outer["temp"][:]
+                return step(r, _temp)
+
+            # arity 2 - normal step.
             if pred(x) == outer["last"]:
                 outer["temp"].append(x)
                 return r
@@ -242,37 +255,43 @@ def partition_by(pred):
                 del outer["temp"][:]
                 outer["temp"].append(x)
                 return step(r, _temp) if _temp else r
-        return _reduce
-    return xducer
+
+        return _partition_by_step
+    return _partition_by_xducer
 
 def partition_all(n):
-    def xducer(step):
-        outer = {"temp": [],
-                 "idx": 0}
-        def _reduce(r, x=Missing):
+    def _partition_all_xducer(step):
+        outer = {"temp": []}
+
+        def _partition_all_step(r, x=Missing):
+
+            # arity 1: called on completion.
             if x is Missing:
-                return step(r, outer["temp"]) if outer["temp"] else step(r)
-            if not outer["idx"] % n:
-                outer["idx"] += 1
+                if not outer["temp"]:
+                    return r
                 _temp = outer["temp"][:]
-                del outer["temp"][:]    # cheaper than getting
-                outer["temp"].append(x) # a new list.
-#                outer["temp"] = [x]
-                return step(r, _temp) if _temp else r
+                del outer["temp"][:]
+                return step(r, _temp)
+
+            # arity 2: called w/each reduction step.
             outer["temp"].append(x)
-            outer["idx"] += 1
+            if len(outer["temp"]) == n:
+                _temp = outer["temp"][:]
+                del outer["temp"][:]
+                return step(r, _temp)
             return r
-        return _reduce
-    return xducer
+
+        return _partition_all_step
+    return _partition_all_xducer
 
 def random_sample(prob):
-    def xducer(step):
-        def _reduce(r, x=Missing):
+    def _random_sample_xducer(step):
+        def _random_sample_step(r, x=Missing):
             if x is Missing:
                 return step(r)
             return step(r, x) if random() < prob else r
-        return _reduce
-    return xducer
+        return _random_sample_step
+    return _random_sample_xducer
 
 def _append(l, x):
     """Local append for into to use."""
