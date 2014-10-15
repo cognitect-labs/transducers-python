@@ -299,6 +299,16 @@ class TransducerTests(unittest.TestCase):
                                    append, [], range(20)),
         [[[0, 1, 2, 3, 4], [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]]])
 
+    def test_nones(self):
+        """Make sure we can take and partition Nones. [[Presently Fails]]."""
+        self.assertEqual(transduce(compose(partition_all(3), take(5)),
+                                   append, [], [None] * 20),
+        [[None, None, None],
+         [None, None, None],
+         [None, None, None],
+         [None, None, None],
+         [None, None, None]])
+
 
 # Verbose tests to verify transducer correctness
 if __name__ == "__main__":
