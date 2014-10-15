@@ -291,6 +291,14 @@ class TransducerTests(unittest.TestCase):
                                    append, [], range(10)),
                          [[[0], [1]], [[2], [3]], [[4], [5]], [[6], [7]], [[8], [9]]])
 
+    def test_partition_stack(self):
+        """Partition same range twice, verifies outer scope not shared and
+        completion works. [[Presently Fails]]"""
+        self.assertEqual(transduce(compose(partition_by(lambda x: x < 5),
+                                           partition_by(lambda x: len(x) < 6)),
+                                   append, [], range(20)),
+        [[[0, 1, 2, 3, 4], [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]]])
+
 
 # Verbose tests to verify transducer correctness
 if __name__ == "__main__":
