@@ -285,7 +285,7 @@ class TransducerTests(unittest.TestCase):
                          append, [], [1, 1, 1, 2, 2, 2, 3]),
                          [[1, 1, 1], [2, 2, 2], [3]])
 
-    def two_completing_steps(self):
+    def test_two_completing_steps(self):
         """Make sure two completing steps fire in correct order."""
         self.assertEqual(transduce(compose(partition_by(fodd), partition_all(2)),
                                    append, [], range(10)),
