@@ -169,13 +169,14 @@ def partition_by(pred):
         last = False
         temp = []
         for item in coll:
-            if pred(item) == last:
+            cond = pred(item)
+            if cond == last:
                 temp.append(item)
             else:
                 yield temp
                 del temp[:]
                 temp.append(item)
-                last = pred(item)
+                last = cond
         if temp:
             yield temp
     return generator
