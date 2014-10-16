@@ -320,6 +320,21 @@ class TransducerTests(unittest.TestCase):
          [None, None, None],
          [None, None, None]])
 
+    def test_clj1557(self):
+        """Test on condition that required unreduced."""
+        # (transduce (comp (take 1) (partition-all 3) (take 1)) conj [] (range 15))
+        self.assertEqual(transduce(compose(take(1), partition_all(3), take(1)),
+                                   append,  [], range(15)),
+                         [[0]]) # and assert "is not Reduced"  as well.
+
+    def test_init_arity(self):
+        """Simple test to make sure we fall through inits. Just has to work."""
+        self.assertTrue(transduce(compose(take(5),
+                                           partition_all(2),
+                                           mapcat(reversed),
+                                           filter(fodd),
+                                           map(msq)),
+                        append, range(20)))
 
 # Verbose tests to verify transducer correctness
 if __name__ == "__main__":

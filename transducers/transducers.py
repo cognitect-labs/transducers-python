@@ -24,7 +24,8 @@ class Reduced(object):
     pass
 
 class Missing(object):
-    """Only for 'is' comparison to simplify arity testing."""
+    """Only for 'is' comparison to simplify arity testing. This us because None
+    is a legal argument differing from 'Not supplied.'"""
     pass
 
 def reduce(function, iterable, initializer=Missing):
@@ -53,13 +54,15 @@ def compose(*fns):
     """
     return functools.reduce(lambda f,g: lambda x: f(g(x)), fns)
 
-def transduce(xform, f, start, coll):
+def transduce(xform, f, start, coll=Missing):
     """Return the results of calling transduce on the reducing function,
     can compose transducers using compose defined above.
 
     Note: could possibly switch coll/start order if we want to match Python
     reduce instead of Clojure reduce.
     """
+    if coll is Missing:
+        return transduce(xform, f, f(), start)
     reducer = xform(f)
     ret = reduce(reducer, coll, start)
     return reducer(ret) # completing step moved to here
@@ -67,7 +70,8 @@ def transduce(xform, f, start, coll):
 def map(f):
     """Transducer version of map."""
     def _map_xducer(step):
-        def _map_step(r, x=Missing):
+        def _map_step(r=Missing, x=Missing):
+            if r is Missing: return step()
             return step(r) if x is Missing else step(r, f(x))
         return _map_step
     return _map_xducer
@@ -75,7 +79,8 @@ def map(f):
 def filter(pred):
     """Transducer version of filter."""
     def _filter_xducer(step):
-        def _filter_step(r, x=Missing):
+        def _filter_step(r=Missing, x=Missing):
+            if r is Missing: return step()
             if x is Missing:
                 return step(r)
             return step(r, x) if pred(x) else r
@@ -84,7 +89,8 @@ def filter(pred):
 
 def cat(step):
     """Cat helper function/transducer."""
-    def _cat_step(r, x=Missing):
+    def _cat_step(r=Missing, x=Missing):
+        if r is Missing: return step()
         return step(r) if x is Missing else functools.reduce(step, x, r)
     return _cat_step
 
@@ -96,7 +102,8 @@ def take(n):
     """Taking transducer."""
     def _take_xducer(step):
         outer_vars = {"counter": 0}
-        def _take_step(r, x=Missing):
+        def _take_step(r=Missing, x=Missing):
+            if r is Missing: return step()
             if x is Missing:
                 return step(r)
             if outer_vars["counter"] < n:
@@ -109,7 +116,8 @@ def take(n):
 
 def take_while(pred):
     def _take_while_xducer(step):
-        def _take_while_step(r, x=Missing):
+        def _take_while_step(r=Missing, x=Missing):
+            if r is Missing: return step()
             if x is Missing:
                 return step(r)
             if pred(x):
@@ -122,7 +130,8 @@ def take_while(pred):
 def drop(n):
     def _drop_xducer(step):
         outer = {"count": 0}
-        def _drop_step(r, x=Missing):
+        def _drop_step(r=Missing, x=Missing):
+            if r is Missing: return step()
             if x is Missing:
                 return step(r)
             if outer["count"] < n:
@@ -136,7 +145,8 @@ def drop(n):
 def drop_while(pred):
     def _drop_while_xducer(step):
         outer = {"trigger": False}
-        def _drop_while_step(r, x=Missing):
+        def _drop_while_step(r=Missing, x=Missing):
+            if r is Missing: return step()
             if x is Missing:
                 return step(r)
             if outer["trigger"]:
@@ -151,7 +161,8 @@ def drop_while(pred):
 def take_nth(n):
     def _take_nth_xducer(step):
         outer = {"idx": 0}
-        def _take_nth_step(r, x=Missing):
+        def _take_nth_step(r=Missing, x=Missing):
+            if r is Missing: return step()
             if x is Missing:
                 return step(r)
             if outer["idx"] % n:
@@ -165,7 +176,8 @@ def take_nth(n):
 
 def replace(smap):
     def _replace_xducer(step):
-        def _replace_step(r, x=Missing):
+        def _replace_step(r=Missing, x=Missing):
+            if r is Missing: return step()
             if x is Missing:
                 return step(r)
             if x in smap:
@@ -177,7 +189,8 @@ def replace(smap):
 
 def keep(pred):
     def _keep_xducer(step):
-        def _keep_step(r, x=Missing):
+        def _keep_step(r=Missing, x=Missing):
+            if r is Missing: return step()
             if x is Missing:
                 return step(r)
             res = pred(x)
@@ -187,7 +200,8 @@ def keep(pred):
 
 def remove(pred):
     def _remove_xducer(step):
-        def _remove_step(r, x=Missing):
+        def _remove_step(r=Missing, x=Missing):
+            if r is Missing: return step()
             if x is Missing:
                 return step(r)
             return step(r, x) if not pred(x) else r
@@ -197,7 +211,8 @@ def remove(pred):
 def keep_indexed(f):
     def _keep_indexed_xducer(step):
         outer = {"idx": 0}
-        def _keep_indexed_step(r, x=Missing):
+        def _keep_indexed_step(r=Missing, x=Missing):
+            if r is Missing: return step()
             if x is Missing:
                 return step(r)
             res = f(outer["idx"], x)
@@ -208,7 +223,8 @@ def keep_indexed(f):
 
 def dedupe(step):
     outer = {}
-    def _dedupe_step(r, x=Missing):
+    def _dedupe_step(r=Missing, x=Missing):
+        if r is Missing: return step()
         if x is Missing:
             return step(r)
         if "prev" not in outer:
@@ -228,7 +244,8 @@ def partition_by(pred):
         outer = {"last": Missing,
                  "temp": []}
 
-        def _partition_by_step(r, x=Missing):
+        def _partition_by_step(r=Missing, x=Missing):
+            if r is Missing: return step()
 
             # arity 1 - called on completion. 
             if x is Missing:
@@ -260,7 +277,8 @@ def partition_all(n):
     def _partition_all_xducer(step):
         outer = {"temp": []}
 
-        def _partition_all_step(r, x=Missing):
+        def _partition_all_step(r=Missing, x=Missing):
+            if r is Missing: return step()
 
             # arity 1: called on completion.
             if x is Missing:
@@ -283,7 +301,8 @@ def partition_all(n):
 
 def random_sample(prob):
     def _random_sample_xducer(step):
-        def _random_sample_step(r, x=Missing):
+        def _random_sample_step(r=Missing, x=Missing):
+            if r is Missing: return step()
             if x is Missing:
                 return step(r)
             return step(r, x) if random() < prob else r
