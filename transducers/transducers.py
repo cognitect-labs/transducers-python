@@ -253,7 +253,8 @@ def partition_by(pred):
                     return r
                 _temp = outer["temp"][:]
                 del outer["temp"][:]
-                return step(r, _temp)
+                _r =  step(r, _temp)
+                return step(_r)
 
             # arity 2 - normal step.
             past_val = outer["last"]
@@ -286,7 +287,8 @@ def partition_all(n):
                     return r
                 _temp = outer["temp"][:]
                 del outer["temp"][:]
-                return step(r, _temp)
+                _r =  step(r, _temp)
+                return step(_r)
 
             # arity 2: called w/each reduction step.
             outer["temp"].append(x)
