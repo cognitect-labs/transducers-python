@@ -88,7 +88,7 @@ def filter(pred):
     return _filter_xducer
 
 def cat(step):
-    """Cat helper function/transducer."""
+    """Cat transducers (will cat items from nested lists, e.g.)."""
     def _cat_step(r=Missing, x=Missing):
         if r is Missing: return step()
         return step(r) if x is Missing else functools.reduce(step, x, r)
