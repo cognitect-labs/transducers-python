@@ -20,8 +20,11 @@ be considered an alternative to both a (not implemented)  OO and generator
 backend.
 """
 class Reduced(object):
+    def __init__(self, x):
+        self.x = x
+    def _repr__(self):
+        return x
     """Only for 'is' comparison to signal early termination of reduce."""
-    pass
 
 class Missing(object):
     """Only for 'is' comparison to simplify arity testing. This us because None
@@ -40,8 +43,8 @@ def reduce(function, iterable, initializer=Missing):
 
     for x in iterable:
         step = function(accum_value, x)
-        if step is not Reduced: # <-- here's where we can terminate early.
-            accum_value = step
+        if isinstance(step, Reduced): # <-- here's where we can terminate early.
+            return step
         else:
             break
     return accum_value
@@ -101,7 +104,7 @@ def mapcat(f):
 def take(n):
     """Taking transducer."""
     def _take_xducer(step):
-        outer_vars = {"counter": 0}
+        outer_vars = {"counter": 1}
         def _take_step(r=Missing, x=Missing):
             if r is Missing: return step()
             if x is Missing:
@@ -110,7 +113,7 @@ def take(n):
                 outer_vars["counter"] += 1
                 return step(r, x)
             else:
-                return Reduced
+                return Reduced(step(r, x))
         return _take_step
     return _take_xducer
 
