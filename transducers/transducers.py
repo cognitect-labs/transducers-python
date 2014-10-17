@@ -126,7 +126,7 @@ def take_while(pred):
             if pred(x):
                 return step(r, x)
             else:
-                return Reduced
+                return Reduced(r)
         return _take_while_step
     return _take_while_xducer
 
