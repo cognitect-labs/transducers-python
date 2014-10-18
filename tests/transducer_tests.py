@@ -32,10 +32,10 @@ from collections import deque
 from fractions import Fraction
 
 # helping reducers
-def add(x=Missing, y=Missing):
-    if x is Missing: return 0
-    if y is Missing: return x
-    return x + y
+def add(r=Missing, x=Missing):
+    if r is Missing: return 0
+    if x is Missing: return r
+    return (r + x)
 
 # list
 def append(l=Missing, item=Missing):
@@ -253,7 +253,6 @@ class TransducerTests(unittest.TestCase):
         """Test input of geometric series that would be infinite w/o short circuit."""
         self.assertEqual(transduce(take(3),
                                    add,
-                                   Fraction(0, 1),
                                    geometric_series(Fraction(1, 1), Fraction(1, 2))),
                         Fraction(7, 4))
 
@@ -263,12 +262,6 @@ class TransducerTests(unittest.TestCase):
                                    append, [], 
                                    [1, 1, 2, 3, 4, 4, 4, 5, 1]),
                                    [1, 2, 3, 4, 5, 1])
-
-    def test_string_to_ints(self):
-        """Transduce from string into sum of ints."""
-        self.assertEqual(transduce(compose(map(ord), take(10)),
-                                   add, 0, "This is just some string!"),
-                                   915)
 
     def test_partition_all_map(self):
         """Test map container type to generator partitions."""
