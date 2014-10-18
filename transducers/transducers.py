@@ -27,15 +27,15 @@ class Missing(object):
 
 class Reduced(object):
     """Only for 'isinstance' comparison to signal early termination of reduce."""
-    def __init__(self, x):
-        self.x = x
+    def __init__(self, val):
+        self.val = val
 
 
 def ensure_reduced(x):
     return x if isinstance(x, Reduced) else Reduced(x)
 
 def unreduced(x):
-    return x.x if isinstance(x, Reduced) else x
+    return x.val if isinstance(x, Reduced) else x
 
 def reduce(function, iterable, initializer=Missing):
     """Using Python documentation's function as base, adding check for
@@ -49,7 +49,7 @@ def reduce(function, iterable, initializer=Missing):
     for x in iterable:
         accum_value = function(accum_value, x)
         if isinstance(accum_value, Reduced): # <-- here's where we can terminate early.
-            return accum_value.x
+            return accum_value.val
     return accum_value
 
 
