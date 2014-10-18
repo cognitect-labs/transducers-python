@@ -33,11 +33,11 @@ def geometric_series(a, r):
         yield a * r**power
 
 T.transduce(T.compose(T.take(3), T.map(float)),
-            add,
-            Fraction(0, 1),
+            T.append,
+            [],
             geometric_series(Fraction(1, 1), Fraction(1, 2)))
 
-# > 1.75
+# > [1.0, 0.5, 0.25]
 ```
 
 For more examples of use, see the test suite tests/transducer_tests.py.
