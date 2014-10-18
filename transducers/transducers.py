@@ -108,7 +108,7 @@ def mapcat(f):
     return compose(map(f), cat)
 
 def take(n):
-    """Takes n from a collection."""
+    """Takes n values from a collection."""
     def _take_xducer(step):
         outer_vars = {"counter": n}
         def _take_step(r=Missing, x=Missing):
@@ -123,9 +123,8 @@ def take(n):
     return _take_xducer
 
 def take_while(pred):
-    """Takes while a condition is true.
-
-    Note that take_while will take the first input that tests false."""
+    """Takes while a condition is true. Note that take_while will take the
+    first input that tests false, so be mindful of mutable input sources."""
     def _take_while_xducer(step):
         def _take_while_step(r=Missing, x=Missing):
             if r is Missing: return step()
@@ -136,7 +135,7 @@ def take_while(pred):
     return _take_while_xducer
 
 def drop(n):
-    """Drops n things from beginning of input sequence."""
+    """Drops n items from beginning of input sequence."""
     def _drop_xducer(step):
         outer = {"count": 0}
         def _drop_step(r=Missing, x=Missing):
