@@ -333,7 +333,7 @@ def random_sample(prob):
     return _random_sample_xducer
 
 
-def _append(r=Missing, x=Missing):
+def append(r=Missing, x=Missing):
     """Appender used by into."""
     if r is Missing: return []
     if x is Missing: return r
@@ -343,7 +343,7 @@ def _append(r=Missing, x=Missing):
 def into(target, xducer, coll):
     """Transduces items from coll into target.
     :TODO: Could write improved dispatch for collections?"""
-    return transduce(xducer, _append, target, coll)
+    return transduce(xducer, append, target, coll)
 
 def eduction(xf, coll):
     """Return a generator with transform applied. Not implemented."""
