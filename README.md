@@ -22,7 +22,6 @@ transducers-python is compatible with Python 2.7.8, Python 3.X, and [PyPy](http:
 
 ```python
 import transducers as T
-from operator import add
 from fractions import Fraction
 
 def geometric_series(a, r):
