@@ -32,10 +32,10 @@ from collections import deque
 from fractions import Fraction
 
 # helping reducers
-def add(x=Missing, y=Missing):
-    if x is Missing: return 0
-    if y is Missing: return x
-    return x + y
+def add(r=Missing, x=Missing):
+    if r is Missing: return 0
+    if x is Missing: return r
+    return (r + x)
 
 # list
 def append(l=Missing, item=Missing):
@@ -62,11 +62,12 @@ fodd = lambda x: x%2
 msq = lambda x: x*x
 
 def onlyeven(x):
-    """could be lambda x: x if x%2 == 0 else None"""
+    """For keep: could be lambda x: x if x%2 == 0 else None"""
     if x%2 == 0:
         return x
 
 def onlyeven_idx(i, x):
+    """For keep indexed: needs to return None."""
     if i%2 == 0:
         return x
 
@@ -100,96 +101,113 @@ class TransducerTests(unittest.TestCase):
     Clojure conj/list = Python dleft_append/deque
     """
     def test_map(self):
+        """Map on a trivial example should match Clojure's behavior."""
         self.assertEqual(transduce(map(lambda x: x**2),
                                   append, [], range(5)),
         # (transduce (map #(* %  %)) conj [] (range 5))
           [0, 1, 4, 9, 16])
 
     def test_filter(self):
+        """Filter on a trivial example should match Clojure's behavior."""
         self.assertEqual(transduce(filter(lambda x: x%2 == 0),
                                   append, [], range(5)),
         # (transduce (filter even?) conj [] (range 5))
           [0, 2, 4])
 
     def test_cat(self):
+        """Cat on a trivial example should match Clojure's behavior."""
         self.assertEqual(transduce(cat, append, [], [[1,2],[3,4]]),
         # (transduce cat conj [] [[1 2] [3 4]])
           [1, 2, 3, 4])
 
     def test_mapcat(self):
+        """Mapcat on a trivial example should match Clojure's behavior."""
         self.assertEqual(transduce(mapcat(reversed),
                                    append, [], [[3, 2, 1], [5, 4]]),
         # (transduce (mapcat reverse) conj [] [[3 2 1] [5 4]])
           [1, 2, 3, 4, 5])
 
     def test_take(self):
+        """Take on a trivial example should match Clojure's behavior."""
         self.assertEqual(transduce(take(3), append, [], range(10)),
         # (transduce (take 3) conj [] (range 10))
           [0, 1, 2])
 
     def test_remove(self):
+        """Remove on a trivial example should match Clojure's behavior."""
         self.assertEqual(transduce(remove(lambda x: x%2 == 0),
                                    append, [], range(10)),
         # (transduce (remove even?) conj [] (range 10))
           [1, 3, 5, 7, 9])
 
     def test_take_while(self):
+        """Test on a trivial example should match Clojure's behavior."""
         self.assertEqual(transduce(take_while(lambda x: x%2 == 0),
                                    append, [], [2, 4, 6, 7, 8]),
         # (transduce (take-while even?) conj [] [2 4 6 7 8])
           [2, 4, 6])
 
     def test_drop(self):
+        """Drop on a trivial example should match Clojure's behavior."""
         self.assertEqual(transduce(drop(4), append, [], range(5)),
         # (transduce (drop 4) conj [] (range 5))
           [4])
 
     def test_drop_while(self):
+        """Drop while on a trivial example should match Clojure's behavior."""
         self.assertEqual(transduce(drop_while(lambda x: x%2 == 0),
                                    append, [], [2, 4, 6, 7, 8]),
         # (transduce (drop-while even?) conj [] [2 4 6 7 8])
           [7, 8])
 
     def test_take_nth(self):
+        """Take nth on a trivial example should match Clojure's behavior."""
         self.assertEqual(transduce(take_nth(3), append, [], range(20)),
         # (transduce (take-nth 3) conj [] (range 20))
           [0, 3, 6, 9, 12, 15, 18])
 
     def test_replace(self):
+        """Replace on a trivial example should match Clojure's behavior."""
         self.assertEqual(transduce(replace({1:"ok"}), 
             append, [], (1, 3, 1, 5, 1, 7)),
         # (transduce (replace {1 "ok"}) conj [] '(1 3 1 5 1 7))
           ["ok", 3, "ok", 5, "ok", 7])
 
     def test_keep(self):
+        """Keep on a trivial example should match Clojure's behavior."""
         self.assertEqual(transduce(keep(onlyeven), append, [], range(10)),
         # (transduce (keep #(if (even? %) %)) conj [] (range 10))
           [0, 2, 4, 6, 8])
 
     def test_keep_indexed(self):
+        """Keep indexed on a trivial example should match Clojure's behavior."""
         self.assertEqual(transduce(keep_indexed(onlyeven_idx), append, [], [1, 3, 5, 7]),
         # (transduce (keep-indexed #(if (even? %1) %2)) conj [] [1 3 5 7])
           [1, 5])
 
     def test_partition_by(self):
+        """Partition by on a trivial example should match Clojure's behavior."""
         self.assertEqual(transduce(partition_by(lambda x: x%2 == 0),
                                    append, [], [1, 3, 1, 4, 2, 1, 6]),
         # (transduce (partition-by even?) conj [] [1 3 1 4 2 1 6])
           [[1, 3, 1], [4, 2], [1], [6]])
 
     def test_partition_all(self):
+        """Partition all on a trivial example should match Clojure's behavior."""
         self.assertEqual(transduce(partition_all(4), append, [], range(15)),
         # (transduce (partition-all 4) conj [] (range 15))
           [[0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13, 14]])
 
     def test_dedupe(self):
+        """Dedupe on a trivial example should match Clojure's behavior."""
         self.assertEqual(transduce(dedupe, append, [],
                                    (1, 3, 1, 1, 2, 2, 2, 1, 4)),
         # (transduce (dedupe) conj [] '(1 3 1 1 2 2 2 1 4))
           [1, 3, 1, 2, 1, 4])
 
     def test_random_sample(self):
-        """May extremely rarely fail."""
+        """Should get results that reflect a normal distribution with multiple
+        random samples."""
         counts = []
         n = 1000
         while len(counts) < 100:
@@ -200,7 +218,7 @@ class TransducerTests(unittest.TestCase):
         self.assertTrue(abs(avg - 0.4) < 0.1) # <-- not an empirical threshold
 
     def test_big_comp(self):
-        """We just want this one to run."""
+        """Should be able to compose transducers without errors."""
         self.assertTrue(transduce(compose(mapcat(reversed),
                                  map(msq),
                                  filter(fodd),
@@ -235,7 +253,6 @@ class TransducerTests(unittest.TestCase):
         """Test input of geometric series that would be infinite w/o short circuit."""
         self.assertEqual(transduce(take(3),
                                    add,
-                                   Fraction(0, 1),
                                    geometric_series(Fraction(1, 1), Fraction(1, 2))),
                         Fraction(7, 4))
 
@@ -245,12 +262,6 @@ class TransducerTests(unittest.TestCase):
                                    append, [], 
                                    [1, 1, 2, 3, 4, 4, 4, 5, 1]),
                                    [1, 2, 3, 4, 5, 1])
-
-    def test_string_to_ints(self):
-        """Transduce from string into sum of ints."""
-        self.assertEqual(transduce(compose(map(ord), take(10)),
-                                   add, 0, "This is just some string!"),
-                                   915)
 
     def test_partition_all_map(self):
         """Test map container type to generator partitions."""
@@ -337,6 +348,16 @@ class TransducerTests(unittest.TestCase):
                                            filter(fodd),
                                            map(msq)),
                         append, range(20)))
+
+    def test_take_only_what_you_need(self):
+        """Current deficiency related to Reduced implementation is that it
+        stops reduce too late, meaning it pulls things ahead of the take.
+        This matters if we're transducing things up to a limit and expect
+        to resumse later."""
+        gsrs = geometric_series(1, 2)
+        transduce(compose(map(msq), take(5)), append, [], gsrs)
+        self.assertEqual(next(gsrs), 32)
+        pass
 
 # Verbose tests to verify transducer correctness
 if __name__ == "__main__":

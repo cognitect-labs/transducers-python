@@ -19,31 +19,37 @@ of transducers in Clojure. It deliberately avoids an OO layer and is meant to
 be considered an alternative to both a (not implemented)  OO and generator
 backend.
 """
-class Reduced(object):
-    """Only for 'is' comparison to signal early termination of reduce."""
-    pass
-
 class Missing(object):
     """Only for 'is' comparison to simplify arity testing. This us because None
     is a legal argument differing from 'Not supplied.'"""
     pass
 
+
+class Reduced(object):
+    """Only for 'isinstance' comparison to signal early termination of reduce."""
+    def __init__(self, x):
+        self.x = x
+
+
+def ensure_reduced(x):
+    return x if isinstance(x, Reduced) else Reduced(x)
+
+def unreduced(x):
+    return x.x if isinstance(x, Reduced) else x
+
 def reduce(function, iterable, initializer=Missing):
     """Using Python documentation's function as base, adding check for
     reduced state and call for final completion step.
     """
-    accum_value = function() if initializer is Missing else initializer
     if initializer is Missing:
         accum_value = function() # 0 arity initializer.
     else:
         accum_value = initializer
 
     for x in iterable:
-        step = function(accum_value, x)
-        if step is not Reduced: # <-- here's where we can terminate early.
-            accum_value = step
-        else:
-            break
+        accum_value = function(accum_value, x)
+        if isinstance(accum_value, Reduced): # <-- here's where we can terminate early.
+            return accum_value.x
     return accum_value
 
 
@@ -53,6 +59,7 @@ def compose(*fns):
     compose(f, g) reads 'f composed with g', or f(g(x))
     """
     return functools.reduce(lambda f,g: lambda x: f(g(x)), fns)
+
 
 def transduce(xform, f, start, coll=Missing):
     """Return the results of calling transduce on the reducing function,
@@ -67,6 +74,7 @@ def transduce(xform, f, start, coll=Missing):
     ret = reduce(reducer, coll, start)
     return reducer(ret) # completing step moved to here
 
+# Transducers
 def map(f):
     """Transducer version of map."""
     def _map_xducer(step):
@@ -95,39 +103,40 @@ def cat(step):
     return _cat_step
 
 def mapcat(f):
-    """Mapcat transducer."""
+    """Mapcat transducer - maps to a collection then cats item into one less
+    level of nesting."""
     return compose(map(f), cat)
 
 def take(n):
-    """Taking transducer."""
+    """Takes n from a collection."""
     def _take_xducer(step):
-        outer_vars = {"counter": 0}
+        outer_vars = {"counter": n}
         def _take_step(r=Missing, x=Missing):
             if r is Missing: return step()
             if x is Missing:
                 return step(r)
-            if outer_vars["counter"] < n:
-                outer_vars["counter"] += 1
-                return step(r, x)
-            else:
-                return Reduced
+            n = outer_vars["counter"]
+            outer_vars["counter"] -= 1
+            r = step(r, x) if n > 0 else r
+            return ensure_reduced(r) if outer_vars["counter"] <= 0 else r
         return _take_step
     return _take_xducer
 
 def take_while(pred):
+    """Takes while a condition is true.
+
+    Note that take_while will take the first input that tests false."""
     def _take_while_xducer(step):
         def _take_while_step(r=Missing, x=Missing):
             if r is Missing: return step()
             if x is Missing:
                 return step(r)
-            if pred(x):
-                return step(r, x)
-            else:
-                return Reduced
+            return step(r, x) if pred(x) else Reduced(r)
         return _take_while_step
     return _take_while_xducer
 
 def drop(n):
+    """Drops n things from beginning of input sequence."""
     def _drop_xducer(step):
         outer = {"count": 0}
         def _drop_step(r=Missing, x=Missing):
@@ -143,6 +152,7 @@ def drop(n):
     return _drop_xducer
 
 def drop_while(pred):
+    """Drops values so long as a condition is true."""
     def _drop_while_xducer(step):
         outer = {"trigger": False}
         def _drop_while_step(r=Missing, x=Missing):
@@ -159,6 +169,7 @@ def drop_while(pred):
     return _drop_while_xducer
 
 def take_nth(n):
+    """Takes every nth item from input values."""
     def _take_nth_xducer(step):
         outer = {"idx": 0}
         def _take_nth_step(r=Missing, x=Missing):
@@ -175,6 +186,7 @@ def take_nth(n):
     return _take_nth_xducer
 
 def replace(smap):
+    """Replaces keys in smap with corresponding values."""
     def _replace_xducer(step):
         def _replace_step(r=Missing, x=Missing):
             if r is Missing: return step()
@@ -188,6 +200,7 @@ def replace(smap):
     return _replace_xducer
 
 def keep(pred):
+    """Keep pred items for which pred does not return None. """
     def _keep_xducer(step):
         def _keep_step(r=Missing, x=Missing):
             if r is Missing: return step()
@@ -199,6 +212,7 @@ def keep(pred):
     return _keep_xducer
 
 def remove(pred):
+    """Remove anything that satisfies pred."""
     def _remove_xducer(step):
         def _remove_step(r=Missing, x=Missing):
             if r is Missing: return step()
@@ -209,6 +223,8 @@ def remove(pred):
     return _remove_xducer
 
 def keep_indexed(f):
+    """Keep values where f does not return None. f for keep indexed is a
+    function that takes both index and value as inputs."""
     def _keep_indexed_xducer(step):
         outer = {"idx": 0}
         def _keep_indexed_step(r=Missing, x=Missing):
@@ -222,6 +238,8 @@ def keep_indexed(f):
     return _keep_indexed_xducer
 
 def dedupe(step):
+    """Removes duplicatees that occur in order. Accepts first inputs through
+    and drops subsequent duplicates."""
     outer = {}
     def _dedupe_step(r=Missing, x=Missing):
         if r is Missing: return step()
@@ -238,7 +256,9 @@ def dedupe(step):
     return _dedupe_step
 
 def partition_by(pred):
-    """Well, don't need OO but partition* transducers are slowest by far."""
+    """Split inputs into lists by starting a new list each time the predicate
+    passed in evaluates to a different condition (true/false) than what holds
+    for the present list."""
     def _partition_by_xducer(step):
 
         outer = {"last": Missing,
@@ -253,7 +273,7 @@ def partition_by(pred):
                     return r
                 _temp = outer["temp"][:]
                 del outer["temp"][:]
-                _r =  step(r, _temp)
+                _r =  unreduced(step(r, _temp))
                 return step(_r)
 
             # arity 2 - normal step.
@@ -267,7 +287,7 @@ def partition_by(pred):
                 _temp = outer["temp"][:]
                 del outer["temp"][:]
                 ret = step(r, _temp)
-                if ret is not Reduced:
+                if not isinstance(ret, Reduced):
                     outer["temp"].append(x)
                 return ret
 
@@ -275,6 +295,7 @@ def partition_by(pred):
     return _partition_by_xducer
 
 def partition_all(n):
+    """Splits inputs into lists of size n."""
     def _partition_all_xducer(step):
         outer = {"temp": []}
 
@@ -287,7 +308,7 @@ def partition_all(n):
                     return r
                 _temp = outer["temp"][:]
                 del outer["temp"][:]
-                _r =  step(r, _temp)
+                _r =  unreduced(step(r, _temp))
                 return step(_r)
 
             # arity 2: called w/each reduction step.
@@ -302,6 +323,7 @@ def partition_all(n):
     return _partition_all_xducer
 
 def random_sample(prob):
+    """Has prob probability of returning each input it receives."""
     def _random_sample_xducer(step):
         def _random_sample_step(r=Missing, x=Missing):
             if r is Missing: return step()
@@ -311,17 +333,19 @@ def random_sample(prob):
         return _random_sample_step
     return _random_sample_xducer
 
-def _append(l=Missing, x=Missing):
-    """Local append for into to use."""
-    if l is Missing: return []
-    if x is Missing: return l
-    l.append(x)
-    return l
+
+def _append(r=Missing, x=Missing):
+    """Appender used by into."""
+    if r is Missing: return []
+    if x is Missing: return r
+    r.append(x)
+    return r
 
 def into(target, xducer, coll):
-    """Only honors things that append at the moment."""
-    return transduce(xducer, _append, type(target)(), coll)
+    """Transduces items from coll into target.
+    :TODO: Could write improved dispatch for collections?"""
+    return transduce(xducer, _append, target, coll)
 
 def eduction(xf, coll):
     """Return a generator with transform applied. Not implemented."""
-    pass
+    raise NotImplementedError
