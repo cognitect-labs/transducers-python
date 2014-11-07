@@ -1,5 +1,5 @@
 from transducers import transducers as T
-from transducers import genducers as G
+from tests import genducers as G
 from tests.transducer_tests import append
 import time
 
