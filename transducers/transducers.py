@@ -37,7 +37,8 @@ class Missing(object):
 
 
 class Reduced(object):
-    """Only for 'isinstance' comparison to signal early termination of reduce."""
+    """Sentinel wrapper from which terminal value can be retrieved. If received
+    by transducers.reduce, will signal early termination."""
     def __init__(self, val):
         self.val = val
 
