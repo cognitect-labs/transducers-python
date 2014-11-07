@@ -6,6 +6,8 @@ In Python you can transduce anything you can iterate over (the implementation of
 
 For more information about Clojure transducers and transducer semantics see the introductory [blog post](http://blog.cognitect.com/blog/2014/8/6/transducers-are-coming) and this [video](https://www.youtube.com/watch?v=6mTbuzafcII).
 
+transducers-python is brought to you by [Cognitect Labs](http://cognitect-labs.github.io/).
+
 ## Installation
 
     pip install --use-wheel --pre transducers
