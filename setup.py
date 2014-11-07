@@ -16,7 +16,7 @@ from setuptools import setup, find_packages
 
 # This isn't a real setup file yet, just the hooks for Cythonize.
 setup(name="transducers",
-      version="0.4.dev"
+      version="0.4.dev",
       description="Clojure Transducers implemented in Python",
       author="Cognitect",
       url="https://github.com/cognitect-labs/transducers-python",
