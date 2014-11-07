@@ -8,7 +8,7 @@ For more information about Clojure transducers and transducer semantics see the 
 
 ## Installation
 
-    pip install transducers ## other arguments TBD
+    pip install --use-wheel --pre transducers
 
 ## Compatibility
 
@@ -16,7 +16,7 @@ transducers-python is compatible with Python 2.7.8, Python 3.X, and [PyPy](http:
 
 ## Documentation
 
-[link](tbd)
+API documentation can be found [here](https://pythonhosted.org/transducers/index.html).
 
 ## Usage
 
