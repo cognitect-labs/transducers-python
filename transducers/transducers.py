@@ -14,13 +14,24 @@
 import functools
 from random import random
 """
-The transducers backend is less performant but consistent with the semantics
-of transducers in Clojure. It deliberately avoids an OO layer and is meant to
-be considered an alternative to both a (not implemented)  OO and generator
-backend.
+This is an implementation of Rich Hickey's Transducers from Clojure in Python.
+It uses functional programming in Python and an alternative reduce which
+recognizes Reduced, a sentinel wrapper with a value that can be extracted to
+signal early termination.
+
+Composed transducers result in a reversed composed process. E.g.,
+
+> compose(map(f), filter(g))
+
+Will apply f to the reduction step before filtering with g. This comes out of
+the composition of transducers naturally as a transducer inserts its
+transformation before the reducing function it accepts as an argument.
+
+Transducers can be called with transduce or transduce into a collection with
+into.
 """
 class Missing(object):
-    """Only for 'is' comparison to simplify arity testing. This us because None
+    """Only for 'is' comparison to simplify arity testing. This is because None
     is a legal argument differing from 'Not supplied.'"""
     pass
 
@@ -38,8 +49,9 @@ def unreduced(x):
     return x.val if isinstance(x, Reduced) else x
 
 def reduce(function, iterable, initializer=Missing):
-    """Using Python documentation's function as base, adding check for
-    reduced state and call for final completion step.
+    """
+    For loop impl of reduce in Python that honors sentinal wrapper Reduced and
+    uses it to signal early termination.
     """
     if initializer is Missing:
         accum_value = function() # 0 arity initializer.
@@ -57,6 +69,9 @@ def compose(*fns):
     """Compose functions using reduce on splat.
 
     compose(f, g) reads 'f composed with g', or f(g(x))
+
+    Note: order of inner function application with transducers is inverted from
+    the composition of the transducers.
     """
     return functools.reduce(lambda f,g: lambda x: f(g(x)), fns)
 
@@ -64,9 +79,6 @@ def compose(*fns):
 def transduce(xform, f, start, coll=Missing):
     """Return the results of calling transduce on the reducing function,
     can compose transducers using compose defined above.
-
-    Note: could possibly switch coll/start order if we want to match Python
-    reduce instead of Clojure reduce.
     """
     if coll is Missing:
         return transduce(xform, f, f(), start)
@@ -76,7 +88,7 @@ def transduce(xform, f, start, coll=Missing):
 
 # Transducers
 def map(f):
-    """Transducer version of map."""
+    """Transducer version of map, returns f(item) with each reduction step."""
     def _map_xducer(step):
         def _map_step(r=Missing, x=Missing):
             if r is Missing: return step()
@@ -199,7 +211,7 @@ def replace(smap):
     return _replace_xducer
 
 def keep(pred):
-    """Keep pred items for which pred does not return None. """
+    """Keep pred items for which pred does not return None."""
     def _keep_xducer(step):
         def _keep_step(r=Missing, x=Missing):
             if r is Missing: return step()
@@ -334,7 +346,8 @@ def random_sample(prob):
 
 
 def append(r=Missing, x=Missing):
-    """Appender used by into."""
+    """Appender used by into. Will work with lists, deques, or anything with
+    an appender."""
     if r is Missing: return []
     if x is Missing: return r
     r.append(x)
@@ -342,7 +355,7 @@ def append(r=Missing, x=Missing):
 
 def into(target, xducer, coll):
     """Transduces items from coll into target.
-    :TODO: Could write improved dispatch for collections?"""
+    :TODO: Write improved dispatch for collections?"""
     return transduce(xducer, append, target, coll)
 
 def eduction(xf, coll):
