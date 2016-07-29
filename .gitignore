@@ -6,3 +6,4 @@ apidoc/_build
 dist/
 build/
 *egg*
+.tox
