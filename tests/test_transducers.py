@@ -168,7 +168,7 @@ class TransducerTests(unittest.TestCase):
 
     def test_replace(self):
         """Replace on a trivial example should match Clojure's behavior."""
-        self.assertEqual(transduce(replace({1:"ok"}), 
+        self.assertEqual(transduce(replace({1:"ok"}),
             append, [], (1, 3, 1, 5, 1, 7)),
         # (transduce (replace {1 "ok"}) conj [] '(1 3 1 5 1 7))
           ["ok", 3, "ok", 5, "ok", 7])
@@ -232,7 +232,7 @@ class TransducerTests(unittest.TestCase):
 
     def test_mf_correct(self):
         """Should be identical output to map and filter without transduction."""
-        self.assertEqual([a for a in __builtin__.map(msq, 
+        self.assertEqual([a for a in __builtin__.map(msq,
                                      __builtin__.filter(fodd, range(10000)))],
                           transduce(compose(filter(fodd), map(msq)),
                           append, [], range(10000)))
@@ -258,8 +258,8 @@ class TransducerTests(unittest.TestCase):
 
     def test_dedupe(self):
         """Test dedupe behavior for correctness."""
-        self.assertEqual(transduce(dedupe, 
-                                   append, [], 
+        self.assertEqual(transduce(dedupe,
+                                   append, [],
                                    [1, 1, 2, 3, 4, 4, 4, 5, 1]),
                                    [1, 2, 3, 4, 5, 1])
 
@@ -296,7 +296,7 @@ class TransducerTests(unittest.TestCase):
 
     def test_completion_forward(self):
         """Make sure partition_all works when short circuited by take."""
-        self.assertEqual(transduce(compose(take(5), partition_all(4)), 
+        self.assertEqual(transduce(compose(take(5), partition_all(4)),
                                   append, [], range(10)),
                                   [[0, 1, 2, 3], [4]])
 

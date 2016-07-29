@@ -13,7 +13,7 @@
 # limitations under the License.
 from transducers import transducers as T
 from tests import genducers as G
-from tests.transducer_tests import append
+from tests.test_transducers import append
 import time
 
 scale = 10
